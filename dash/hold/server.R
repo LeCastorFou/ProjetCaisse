@@ -61,6 +61,7 @@ server = function(input, output,session) {
                                                            extension = "Buttons",
                                                            filter='none',
                                                            colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'),
+  # colnames =  c("Date", "Heure", "Réf.Doc.", "Code articles", "Désignation", "Qté", "Taux de TVA", "Prix", "Mont.Soumis","Mont.TVA","Mont.Total"),
                                                            options = list(
                                                              #"columnDefs":  {"targets": c(3, 6, 8:10) , "searchable": false} 
                                                              autoWidth = TRUE,
@@ -129,15 +130,15 @@ server = function(input, output,session) {
     
       req(input$dataCod.Rayons)
       
-      dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
-      dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
+ dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
+ dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Code.barres', 'Désignation', 'Désignation.2', 'Famille')]
       MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
       dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
       
       total <- merge(MyData$data,dataCod.Rayons,by="Code",all = TRUE)
       total$Code <- as.factor(total$Code)
       MyData$data <- total
-      write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
+      write.csv2(dataCod.Rayons, file = "dataCod.Rayons.csv")
       
       sendSweetAlert(
         session  =  session , 
@@ -153,12 +154,12 @@ server = function(input, output,session) {
     req(input$dataFamilles)
 
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
-    dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
-    colnames(dataFamilles) <- c("Famille", "Désignation Famille")
+    dataFamilles<- dataFamilles[,c('Code', 'Désignation', 'Désignation.2')]
+    MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
+    dataFamilles$Code <- as.numeric(as.character(dataFamilles$Code))
 
-
-    total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
-    total$Famille <- as.factor(total$Famille)
+    total <- merge(MyData$data,dataFamilles,by="Code",all = TRUE)
+    total$Code <- as.factor(total$Code)
     MyData$data <- total
     write.csv2(dataFamilles, file = "dataFamilles.csv")
 
@@ -197,11 +198,11 @@ server = function(input, output,session) {
       MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
       
       # Merge avec le fichier des codes articles si il existe dans le répertoire courant
-      if (file.exists("dataCodeRayons.csv"))
+      if (file.exists("dataCod.Rayons.csv"))
       { 
-        print("file dataCodeRayons exist")
-        dataCod.Rayons <- read.csv2("dataCodeRayons.csv")
-        #dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Code.barres', 'Désignation', 'Désignation.2', 'Famille')]
+        print("file exist")
+   dataCod.Rayons <- read.csv2("dataCod.Rayons.csv")
+   dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Code.barres', 'Désignation', 'Désignation.2', 'Famille')]
         MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
         dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
         
@@ -211,23 +212,22 @@ server = function(input, output,session) {
       }
       
     #  Merge avec le fichier des codes familles si il existe dans le répertoire courant
-     # if (file.exists("dataFamilles.csv"))
-     # {
-     #    print("file dataFamilles exist")
-     #    dataFamilles <- read.csv2("dataFamilles.csv")
-     #    dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
-     #     MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
-     #     dataFamilles$Code <- as.numeric(as.character(dataFamilles$Code))
-     #  
-     #      total <- merge(MyData$data,dataFamilles,by="Code",all = TRUE)
-     #      total$Code <- as.factor(total$Code)
-     #      MyData$data <- total
-     #      updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Famille")] ) )
-     #    }
-
+      # if (file.exists("dataFamilles.csv"))
+      # {
+      #   print("file exist")
+      #   dataFamilles <- read.csv2("dataFamilles.csv")
+      #   dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
+      #    MyData$data$Famille <- as.numeric(as.character(MyData$data$Famille))
+      #   dataFamilles$Famille <- as.numeric(as.character(dataFamilles$Famille))
+      # 
+      #   # total <- merge(MyData$data,dataFamilles,by="Code",all = TRUE)
+      #   # total$Code <- as.factor(total$Code)
+      #   MyData$data <- total
+      #  }
+      
       updateSelectizeInput(session, 'SelectCode', choices = unique( MyData$data[c("Code")] ) )
       updateSelectizeInput(session, 'SelectTVA', choices = unique( MyData$data[c("Ts %")] ) )
-      
+      updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Famille")] ) )
       
       MyDataSum$data <- MyData$data[,c('Prix','Mont.TVA')]
       MyDataSum$data <- data.frame(Sommes=colSums(MyDataSum$data))
