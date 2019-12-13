@@ -13,7 +13,10 @@ data <- read_delim("~/Dropbox/Cours_R/ProjetCaisse/Rapports_Articles-20191124131
                    comment = "//", trim_ws = TRUE 
 )
 data <- data[,-3] 
-dataFamilles  <- read.csv2("~/Dropbox/Cours_R/ProjetCaisse/artigos_valentin.csv")
+dataFamilles  <- read.csv2("~/GitHub/R_caisse/dash/dataCodeRayons.csv")
+colnames( dataFamilles )[-1]
+dataFamilles[c('Famille')]
+dataFamilles = subset(dataFamilles, select = -c(X) )
 data$Code <- as.numeric(as.character(data$Code))
 dataFamilles$Code <- as.numeric(as.character(dataFamilles$Code))
 

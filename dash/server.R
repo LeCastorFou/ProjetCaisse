@@ -54,7 +54,11 @@ server = function(input, output,session) {
                                            else{df_expose = df_expose[df_expose$'Ts %' %in% input$SelectTVA, ]}
                                            # Gerer la selection des codes familles
                                            if(is.null(input$SelectFamilles)){df_expose = df_expose}
-                                           else{df_expose = df_expose[df_expose$Famille %in% input$SelectFamilles, ]}
+                                           else{
+                                             print(input$SelectFamilles)
+                                             print(df_expose[c("Désignation.Famille")])
+                                             df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
+                                             }
                                            
                                           
                                            df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]), 
@@ -86,7 +90,7 @@ server = function(input, output,session) {
       else{df_expose = df_expose[df_expose$'Ts %' %in% input$SelectTVA, ]}
       # Gerer la selection des codes familles
       if(is.null(input$SelectFamilles)){df_expose = df_expose}
-      else{df_expose = df_expose[df_expose$Famille %in% input$SelectFamilles, ]}
+      else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
       
       
       df_expose <- df_expose[,c('Prix','Mont.TVA')]
@@ -151,15 +155,16 @@ server = function(input, output,session) {
   observeEvent(input$mergingF, {
 
     req(input$dataFamilles)
-
+    
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
-    colnames(dataFamilles) <- c("Famille", "Désignation Famille")
+    colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
 
 
     total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
     total$Famille <- as.factor(total$Famille)
     MyData$data <- total
+    updateSelectizeInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Désignation.Famille")] ) )
     write.csv2(dataFamilles, file = "dataFamilles.csv")
 
     sendSweetAlert(
@@ -201,6 +206,7 @@ server = function(input, output,session) {
       { 
         print("file dataCodeRayons exist")
         dataCod.Rayons <- read.csv2("dataCodeRayons.csv")
+        dataCod.Rayons = subset(dataCod.Rayons, select = -c(X) )
         #dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Code.barres', 'Désignation', 'Désignation.2', 'Famille')]
         MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
         dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
@@ -210,20 +216,23 @@ server = function(input, output,session) {
         MyData$data <- total
       }
       
-    #  Merge avec le fichier des codes familles si il existe dans le répertoire courant
-     # if (file.exists("dataFamilles.csv"))
-     # {
-     #    print("file dataFamilles exist")
-     #    dataFamilles <- read.csv2("dataFamilles.csv")
-     #    dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
-     #     MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
-     #     dataFamilles$Code <- as.numeric(as.character(dataFamilles$Code))
-     #  
-     #      total <- merge(MyData$data,dataFamilles,by="Code",all = TRUE)
-     #      total$Code <- as.factor(total$Code)
-     #      MyData$data <- total
-     #      updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Famille")] ) )
-     #    }
+     #Merge avec le fichier des codes familles si il existe dans le répertoire courant
+    if (file.exists("dataFamilles.csv"))
+    {
+       print("file dataFamilles exist")
+       dataFamilles <- read.csv2("dataFamilles.csv")
+        MyData$data$Famille <- as.numeric(as.character(MyData$data$Famille))
+        print(colnames( MyData$data))
+        dataFamilles$Famille <- as.numeric(as.character(dataFamilles$Famille))
+        dataFamilles = subset(dataFamilles, select = -c(X) )
+        thecolname  = colnames( dataFamilles)[-1]
+        
+
+         total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
+         total$Famille <- as.factor(total$Famille)
+         MyData$data <- total
+         updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c(thecolname)] ) )
+       }
 
       updateSelectizeInput(session, 'SelectCode', choices = unique( MyData$data[c("Code")] ) )
       updateSelectizeInput(session, 'SelectTVA', choices = unique( MyData$data[c("Ts %")] ) )
