@@ -145,19 +145,30 @@ server = function(input, output,session) {
                                            # Gerer la selection des codes familles
                                            if(is.null(input$SelectFamilles)){df_expose = df_expose}
                                            else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
-                                           df_expose <- df_expose[,c("Mont.Soumis","Désignation.Famille")]
+                                           
+                      # df_expose <- df_expose[,c("Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total", "Désignation.Famille")]
+                                           df_expose$Prix <- as.numeric(df_expose$Prix)
                                            df_expose$Mont.Soumis <- as.numeric(df_expose$Mont.Soumis)
-                                           #df_expose %>% group_by("Désignation.Famille") %>% summarise(Mont.Soumis = sum(Mont.Soumis))
-                                           df_expose = aggregate(df_expose$Mont.Soumis, by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
+                                           df_expose$Mont.TVA <- as.numeric(df_expose$Mont.TVA)
+                                           df_expose$Mont.Total <- as.numeric(df_expose$Mont.Total)
+                                           
+                                           df_expose = aggregate(cbind(df_expose$Prix,df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
+                                                                 by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
+                                                                # (df_expose[,cbind("Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]), FUN=sum)
+                                                                 # (Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
+                                           
                                            print(df_expose)
-                                           df <- datatable(df_expose,
+                                           df <- datatable(df_expose, rownames = F,
+                                                          # colnames = c("Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total", "Désignation.Famille"),
                                                            extension = "Buttons",
                                                            filter='none',
                                                             options = list(
                                                                # autoWidth = TRUE,
                                                                 dom = "lftiprB",
-                                                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
-                                                           )
+                                                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                           pageLength = 15,
+                                                           lengthMenu = c(15, 20, 25, 30)
+                                                           ))
                                            
                                         
                                                                     
