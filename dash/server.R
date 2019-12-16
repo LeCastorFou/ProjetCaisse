@@ -99,7 +99,7 @@ server = function(input, output,session) {
       else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
       
       
-      df_expose <- df_expose[,c('Prix','Mont.TVA')]
+      df_expose <- df_expose[,c('Mont.Total','Mont.TVA')]
       df_expose <- data.frame(Sommes=colSums(df_expose))
       
       df <- datatable(df_expose,
@@ -146,20 +146,16 @@ server = function(input, output,session) {
                                            if(is.null(input$SelectFamilles)){df_expose = df_expose}
                                            else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
                                            
-                      # df_expose <- df_expose[,c("Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total", "Désignation.Famille")]
-                                           df_expose$Prix <- as.numeric(df_expose$Prix)
                                            df_expose$Mont.Soumis <- as.numeric(df_expose$Mont.Soumis)
                                            df_expose$Mont.TVA <- as.numeric(df_expose$Mont.TVA)
                                            df_expose$Mont.Total <- as.numeric(df_expose$Mont.Total)
                                            
-                                           df_expose = aggregate(cbind(df_expose$Prix,df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
+                                           df_expose = aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
                                                                  by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
-                                                                # (df_expose[,cbind("Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]), FUN=sum)
-                                                                 # (Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
                                            
                                            print(df_expose)
                                            df <- datatable(df_expose, rownames = F,
-                                                           colnames = c('Prix Unitaire' = 'V1', 'Montant soumis' = 'V2', 'Montant TVA' = 'V3', 'Montant Total' = 'V4'),
+                                                           colnames = c('Montant soumis' = 'V2', 'Montant TVA' = 'V3', 'Montant Total' = 'V4'),
                                                            extension = "Buttons",
                                                            filter='none',
                                                             options = list(
@@ -272,7 +268,7 @@ server = function(input, output,session) {
         print("file dataCodeRayons exist")
         dataCod.Rayons <- read.csv2("dataCodeRayons.csv")
         dataCod.Rayons = subset(dataCod.Rayons, select = -c(X) )
-        #dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Code.barres', 'Désignation', 'Désignation.2', 'Famille')]
+        
         MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
         dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
         
