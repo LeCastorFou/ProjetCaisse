@@ -159,8 +159,7 @@ server = function(input, output,session) {
                                            
                                            print(df_expose)
                                            df <- datatable(df_expose, rownames = F,
-                                                           colnames = c('Prix' = 'V1', 'Montant soumis' = 'V2', 'Montant TVA' = 'V3', 'Montant Total' = 'V4'),
-                                                          # colnames = c("Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total", "Désignation.Famille"),
+                                                           colnames = c('Prix Unitaire' = 'V1', 'Montant soumis' = 'V2', 'Montant TVA' = 'V3', 'Montant Total' = 'V4'),
                                                            extension = "Buttons",
                                                            filter='none',
                                                             options = list(
