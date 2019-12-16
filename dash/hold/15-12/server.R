@@ -1,8 +1,4 @@
-# setwd("~/R/MyShinyAPP")
-# dataFile <- read.table(file.choose(),header = T, sep = ";", quote = '"', dec = ".")
-# as_tibble(dataFile)
-# head(dataFile)
-# mode(dataFile)
+
 # ####################### # 
 ## SERVER ----
 # ####################### #
@@ -11,7 +7,7 @@ server = function(input, output,session) {
   MyData <- reactiveValues()
   MyDataSum <- reactiveValues()
   MyDataBis <- reactiveValues()
-
+  
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F,
                                             colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
                                             {
@@ -44,6 +40,8 @@ server = function(input, output,session) {
   )
   
   output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none", 
+# colnames =  c("Date", "Heure", "Réf.Doc.", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis","Mont.TVA","Mont.Total"),
+          #  datatable(head(dataFile), 
                                          ## caption = "Rapport des ventes",
                                          # formatCurrency(8:10, '\U20AC', 2), # ???
                                          {
@@ -62,15 +60,13 @@ server = function(input, output,session) {
                                              print(df_expose[c("Désignation.Famille")])
                                              df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
                                              }
-                                          
+                                           
 # colnames = c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")
-
+                                           
                                            df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]), 
                                                            extension = "Buttons",
                                                            filter='none',
- # df <- df[, c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")],
                                                            colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'),
-                                                          
                                                            options = list(
                                                              #"columnDefs":  {"targets": c(3, 6, 8:10) , "searchable": false} 
                                                              autoWidth = TRUE,
@@ -132,36 +128,21 @@ server = function(input, output,session) {
   )
   
   output$MyDataBis <- DT::renderDataTable(filter='none', rownames = F,
-                                         {
-                                           df_expose = MyData$data
-                                           df_expose <- df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
-                                           
-                                           # Gerer la selection des codes articles
-                                           if(is.null(input$SelectCode)){df_expose = df_expose}
-                                           else{df_expose = df_expose[df_expose$Code %in% input$SelectCode, ]}
-                                           # Gerer la selection des TVA
-                                           if(is.null(input$SelectTVA)){df_expose = df_expose}
-                                           else{df_expose = df_expose[df_expose$'Ts %' %in% input$SelectTVA, ]}
-                                           # Gerer la selection des codes familles
-                                           if(is.null(input$SelectFamilles)){df_expose = df_expose}
-                                           else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
-                                           df_expose <- df_expose[,c("Mont.Soumis","Désignation.Famille")]
-                                           df_expose$Mont.Soumis <- as.numeric(df_expose$Mont.Soumis)
-                                           #df_expose %>% group_by("Désignation.Famille") %>% summarise(Mont.Soumis = sum(Mont.Soumis))
-                                           df_expose = aggregate(df_expose$Mont.Soumis, by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
-                                           print(df_expose)
-                                           df <- datatable(df_expose,
-                                                           extension = "Buttons",
-                                                           filter='none',
+                                          {
+                                            df_expose = MyData$data
+                                            
+                                            df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]),
+                                                            extension = "Buttons",
+                                                            filter='none',
+                                                            colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'),
                                                             options = list(
-                                                               # autoWidth = TRUE,
-                                                                dom = "lftiprB",
-                                                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
-                                                           )
-                                           
-                                        
-                                                                    
-    }
+                                                              # autoWidth = TRUE,
+                                                              dom = "lftiprB",
+                                                              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
+                                            )
+                                            # group_by(df_expose,Désignation.Famille)
+                                            
+                                          }
   )
   
   # =========================================================================== =
@@ -177,7 +158,7 @@ server = function(input, output,session) {
   observeEvent(input$Dashboard, {
     updateTabItems(session, "tabs", selected = "tab_dashboard")
   })
-
+  
   observeEvent(input$merging, {
     
       req(input$dataCod.Rayons)
@@ -216,11 +197,6 @@ server = function(input, output,session) {
     updateSelectizeInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Désignation.Famille")] ) )
     write.csv2(dataFamilles, file = "dataFamilles.csv")
 
-
-    total <- merge(MyData$data,by="Désignation.Famille", all = T)
-    total$MyDataBis <- as.character(total$MyDataBis)
-    MyDataBis$data <- total
-  
     sendSweetAlert(
       session  =  session ,
       title  =  "Succes !!" ,
@@ -252,7 +228,7 @@ server = function(input, output,session) {
       )
       
       MyData$data <- MyData$data[,-3,]
-# MyDataBis <- df[, c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
+ 
       MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
       
       # Merge avec le fichier des codes articles si il existe dans le répertoire courant
@@ -270,7 +246,7 @@ server = function(input, output,session) {
         MyData$data <- total
       }
       
-     # Merge avec le fichier des codes familles si il existe dans le répertoire courant
+     #Merge avec le fichier des codes familles si il existe dans le répertoire courant
     if (file.exists("dataFamilles.csv"))
     {
        print("file dataFamilles exist")
