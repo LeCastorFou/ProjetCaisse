@@ -42,7 +42,8 @@ ui <- dashboardPage(
                   width = 3, offset = 1,
                   tags$br(),
                   dateRangeInput("DateRange",label = "Selectionner une plage de date :", start = now(), separator = " / "),
-                  selectizeInput('SelectCode', 'Selectionner Code Article', choices = " ", multiple = TRUE)
+                  selectizeInput('SelectCode', 'Selectionner Code Article', choices = " ", multiple = TRUE),
+                  (actionButton(inputId = "Dashboard", label = "dashboard", icon = icon("dashboard")))
                 ),
                 column(
                   width = 3, offset = 1,
@@ -57,7 +58,10 @@ ui <- dashboardPage(
         tabName = "tab_dashboard", 
         h2("Tableau de bord"),
         (actionButton(inputId = "UploadFile", label = "Charger des informations", icon = icon("play"))),
-        shinythemes::themeSelector()
+        (actionButton(inputId = "ModFile", label = "Changer les filtres", icon = icon("play"))),
+        shinythemes::themeSelector(),
+        tags$br(),
+        DTOutput("MyDataBis")
       ),
       tabItem(
         tabName = "tab_readData",
