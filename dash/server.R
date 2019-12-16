@@ -79,7 +79,7 @@ server = function(input, output,session) {
                                                              columnDefs = list(list(className = 'dt-center', targets = "") ),
                                                              pageLength = 8,
                                                              lengthMenu = c(8, 200, 500, 1000)
-                                                           )) %>% formatStyle('Prix', color = 'red', backgroundColor = 'yellow', fontWeight = 'bold')
+                                                           ))# %>% formatStyle('Prix', color = 'red', backgroundColor = 'yellow', fontWeight = 'bold')
                                            
                                          }
   )
@@ -155,7 +155,7 @@ server = function(input, output,session) {
                                            
                                            print(df_expose)
                                            df <- datatable(df_expose, rownames = F,
-                                                           colnames = c('Montant soumis' = 'V2', 'Montant TVA' = 'V3', 'Montant Total' = 'V4'),
+                                                           colnames = c('Montant soumis' = 'V1', 'Montant TVA' = 'V2', 'Montant Total' = 'V3'),
                                                            extension = "Buttons",
                                                            filter='none',
                                                             options = list(
