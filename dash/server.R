@@ -64,8 +64,21 @@ server = function(input, output,session) {
                                              df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
                                            }
                                            
-                                           # colnames = c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")
                                            
+                                           ############################################
+                                           if (file.exists("dataCodeRayons.csv"))
+                                           { 
+                                           df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
+                                           }
+                                           else if (file.exists("dataFamilles.csv"))
+                                           {
+                                             df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
+                                           }
+                                           else
+                                           {
+                                             df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
+                                           }
+                                           ####################################################################
                                            df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]), 
                                                            extension = "Buttons",
                                                            filter='none',

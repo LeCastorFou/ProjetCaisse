@@ -12,6 +12,10 @@ data <- read_delim("~/Dropbox/Cours_R/ProjetCaisse/Rapports_Articles-20191124131
                                    encoding = "ISO-8859-1"), na = "null", 
                    comment = "//", trim_ws = TRUE 
 )
+data <- data[,c("Mont.Soumis","TD")]
+data %>% group_by(TD) %>% summarise(Mont.Soumis = sum(Mont.Soumis))
+
+
 data <- data[,-3] 
 dataFamilles  <- read.csv2("~/GitHub/R_caisse/dash/dataCodeRayons.csv")
 colnames( dataFamilles )[-1]
@@ -19,6 +23,11 @@ dataFamilles[c('Famille')]
 dataFamilles = subset(dataFamilles, select = -c(X) )
 data$Code <- as.numeric(as.character(data$Code))
 dataFamilles$Code <- as.numeric(as.character(dataFamilles$Code))
+
+library(data.table)
+dataFamilles <- data.table(dataFamilles)
+dataFamilles %>% group_by("Code")
+
 
 total = merge(data,dataFamilles,by="Code",all = TRUE)
 total$Code <- as.factor(total$Code)

@@ -13,7 +13,7 @@ library(DT)
 library(readr)
 library(data.table)
 library(shinyWidgets)
-library(tidyverse)
+#library(tidyverse)
 
 # ####################### #
 ## UI ----
