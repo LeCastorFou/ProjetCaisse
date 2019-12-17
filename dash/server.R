@@ -12,6 +12,7 @@ server = function(input, output,session) {
   MyDataSum <- reactiveValues()
   MyDataBis <- reactiveValues()
   MyDataTVA <- reactiveValues()
+  MyDataBisGraph <- reactiveValues()
   
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F,
                                             colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
@@ -223,6 +224,26 @@ server = function(input, output,session) {
                                             
                                             
                                           }
+  )
+  
+  output$MyDataBisGraph <- DT::renderDataTable( {
+    df_expose = MyData$data
+    df_expose <- df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
+    
+    # Gerer la selection des codes articles
+    if(is.null(input$SelectCode)){df_expose = df_expose}
+    else{df_expose = df_expose[df_expose$Code %in% input$SelectCode, ]}
+    # Gerer la selection des TVA
+    if(is.null(input$SelectTVA)){df_expose = df_expose}
+    else{df_expose = df_expose[df_expose$'Ts %' %in% input$SelectTVA, ]}
+    # Gerer la selection des codes familles
+    if(is.null(input$SelectFamilles)){df_expose = df_expose}
+    else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
+    
+    df_expose$Mont.Total <- as.numeric(df_expose$Mont.Total)
+    
+    MyDataBisGraph <- ggplot(df_expose, aes(Désignation.Famille, file=Mont.Total))+geom_bar()      
+  }
   )
   
   # =========================================================================== =

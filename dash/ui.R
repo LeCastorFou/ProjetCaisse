@@ -74,7 +74,13 @@ ui <- dashboardPage(
                      fluidRow(
                        column(width = 9, offset = 1,
                               DTOutput("MyDataTVA")
-                       ))
+                       ),
+                       tags$br(),
+                       fluidRow(
+                         column(width = 9, offset = 1,
+                                DTOutput("MyDataBisGraph")
+                         ))
+                     )
                  )))),
       tabItem(
         tabName = "tab_readData",
