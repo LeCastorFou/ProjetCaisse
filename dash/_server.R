@@ -34,7 +34,7 @@ server = function(input, output,session) {
                                                                        Code = col_factor(),
                                                                        Designation = col_character(),
                                                                        `Qte` = col_number(),
-                                                                       # `Ts %` = col_factor(levels = c()),
+                                                                      # `Ts %` = col_factor(levels = c()),
                                                                        Mont.Total = col_number()),
                                                                      locale = locale(decimal_mark = ",", 
                                                                                      encoding = "ISO-8859-1"), na = "null", 
@@ -62,16 +62,16 @@ server = function(input, output,session) {
                                              print(input$SelectFamilles)
                                              print(df_expose[c("Désignation.Famille")])
                                              df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
-                                           }
-                                           
-                                           # colnames = c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")
-                                           
+                                             }
+                                          
+# colnames = c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")
+
                                            df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]), 
                                                            extension = "Buttons",
                                                            filter='none',
-                                                           # df <- df[, c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")],
+ # df <- df[, c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")],
                                                            colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'),
-                                                           
+                                                          
                                                            options = list(
                                                              #"columnDefs":  {"targets": c(3, 6, 8:10) , "searchable": false} 
                                                              autoWidth = TRUE,
@@ -118,58 +118,58 @@ server = function(input, output,session) {
     req(input$dataCod.Rayons)
     
     dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath) 
-    # attach(dataCod.Rayons)
+   # attach(dataCod.Rayons)
     dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
   } 
-  )
+   )
   output$dataFamilles <- DT::renderDataTable(filter='none', rownames = F, editable = T, {
     
     req(input$dataFamilles)
-    
+
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
-    # attach(dataFamilles)
+   # attach(dataFamilles)
     dataFamilles <- dataFamilles[,c(-4:-14)]
   }
   )
   
   output$MyDataBis <- DT::renderDataTable(filter='none', rownames = F,
-                                          {
-                                            df_expose = MyData$data
-                                            df_expose <- df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
-                                            
-                                            # Gerer la selection des codes articles
-                                            if(is.null(input$SelectCode)){df_expose = df_expose}
-                                            else{df_expose = df_expose[df_expose$Code %in% input$SelectCode, ]}
-                                            # Gerer la selection des TVA
-                                            if(is.null(input$SelectTVA)){df_expose = df_expose}
-                                            else{df_expose = df_expose[df_expose$'Ts %' %in% input$SelectTVA, ]}
-                                            # Gerer la selection des codes familles
-                                            if(is.null(input$SelectFamilles)){df_expose = df_expose}
-                                            else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
-                                            
-                                            df_expose$Mont.Soumis <- as.numeric(df_expose$Mont.Soumis)
-                                            df_expose$Mont.TVA <- as.numeric(df_expose$Mont.TVA)
-                                            df_expose$Mont.Total <- as.numeric(df_expose$Mont.Total)
-                                            
-                                            df_expose = aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
-                                                                  by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
-                                            
+                                         {
+                                           df_expose = MyData$data
+                                           df_expose <- df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
+                                           
+                                           # Gerer la selection des codes articles
+                                           if(is.null(input$SelectCode)){df_expose = df_expose}
+                                           else{df_expose = df_expose[df_expose$Code %in% input$SelectCode, ]}
+                                           # Gerer la selection des TVA
+                                           if(is.null(input$SelectTVA)){df_expose = df_expose}
+                                           else{df_expose = df_expose[df_expose$'Ts %' %in% input$SelectTVA, ]}
+                                           # Gerer la selection des codes familles
+                                           if(is.null(input$SelectFamilles)){df_expose = df_expose}
+                                           else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
+                                           
+                                           df_expose$Mont.Soumis <- as.numeric(df_expose$Mont.Soumis)
+                                           df_expose$Mont.TVA <- as.numeric(df_expose$Mont.TVA)
+                                           df_expose$Mont.Total <- as.numeric(df_expose$Mont.Total)
+                                           
+                                           df_expose = aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
+                                                                 by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
+                                           
                                             print(df_expose)
-                                            df <- datatable(df_expose, rownames = F,
-                                                            colnames = c('Montant soumis' = 'V1', 'Montant TVA' = 'V2', 'Montant Total' = 'V3'),
-                                                            extension = "Buttons",
-                                                            filter='none',
+                                           df <- datatable(df_expose, rownames = F,
+                                                           colnames = c('Montant soumis' = 'V1', 'Montant TVA' = 'V2', 'Montant Total' = 'V3'),
+                                                           extension = "Buttons",
+                                                           filter='none',
                                                             options = list(
-                                                              # autoWidth = TRUE,
-                                                              dom = "lftiprB",
-                                                              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                                                              pageLength = 15,
-                                                              lengthMenu = c(15, 20, 25, 30)
-                                                            ))
-                                            
-                                            
-                                            
-                                          }
+                                                               # autoWidth = TRUE,
+                                                                dom = "lftiprB",
+                                                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                           pageLength = 15,
+                                                           lengthMenu = c(15, 20, 25, 30)
+                                                           ))
+                                           
+                                        
+                                                                    
+    }
   )
   
   output$MyDataTVA <- DT::renderDataTable(filter='none', rownames = F,
@@ -225,57 +225,57 @@ server = function(input, output,session) {
   observeEvent(input$Dashboard, {
     updateTabItems(session, "tabs", selected = "tab_dashboard")
   })
-  
+
   observeEvent(input$merging, {
     
-    req(input$dataCod.Rayons)
-    
-    dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
-    dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
-    MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
-    dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
-    
-    total <- merge(MyData$data,dataCod.Rayons,by="Code",all = TRUE)
-    total$Code <- as.factor(total$Code)
-    MyData$data <- total
-    write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
-    
-    sendSweetAlert(
-      session  =  session , 
-      title  =  "Succes !!" , 
-      text  =  "Ce fichier sera dorénavant utiliser pour libeller les articles ..." , 
-      type  =  "success" 
-    )
-    
-  })
+      req(input$dataCod.Rayons)
+      
+      dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
+      dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
+      MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
+      dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
+      
+      total <- merge(MyData$data,dataCod.Rayons,by="Code",all = TRUE)
+      total$Code <- as.factor(total$Code)
+      MyData$data <- total
+      write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
+      
+      sendSweetAlert(
+        session  =  session , 
+        title  =  "Succes !!" , 
+        text  =  "Ce fichier sera dorénavant utiliser pour libeller les articles ..." , 
+        type  =  "success" 
+      )
+     
+     })
   
   observeEvent(input$mergingF, {
-    
+
     req(input$dataFamilles)
     
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
     colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
-    
-    
+
+
     total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
     total$Famille <- as.factor(total$Famille)
     MyData$data <- total
     updateSelectizeInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Désignation.Famille")] ) )
     write.csv2(dataFamilles, file = "dataFamilles.csv")
-    
-    
+
+
     total <- merge(MyData$data,by="Désignation.Famille", all = T)
     total$MyDataBis <- as.character(total$MyDataBis)
     MyDataBis$data <- total
-    
+  
     sendSweetAlert(
       session  =  session ,
       title  =  "Succes !!" ,
       text  =  "Ce fichier sera dorénavant utiliser pour libeller les codes familles ..." ,
       type  =  "success"
     )
-    
+
   })
   
   
@@ -300,7 +300,7 @@ server = function(input, output,session) {
       )
       
       MyData$data <- MyData$data[,-3,]
-      # MyDataBis <- df[, c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
+# MyDataBis <- df[, c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
       MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
       
       # Merge avec le fichier des codes articles si il existe dans le répertoire courant
@@ -318,24 +318,24 @@ server = function(input, output,session) {
         MyData$data <- total
       }
       
-      # Merge avec le fichier des codes familles si il existe dans le répertoire courant
-      if (file.exists("dataFamilles.csv"))
-      {
-        print("file dataFamilles exist")
-        dataFamilles <- read.csv2("dataFamilles.csv")
+     # Merge avec le fichier des codes familles si il existe dans le répertoire courant
+    if (file.exists("dataFamilles.csv"))
+    {
+       print("file dataFamilles exist")
+       dataFamilles <- read.csv2("dataFamilles.csv")
         MyData$data$Famille <- as.numeric(as.character(MyData$data$Famille))
         print(colnames( MyData$data))
         dataFamilles$Famille <- as.numeric(as.character(dataFamilles$Famille))
         dataFamilles = subset(dataFamilles, select = -c(X) )
         thecolname  = colnames( dataFamilles)[-1]
         
-        
-        total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
-        total$Famille <- as.factor(total$Famille)
-        MyData$data <- total
-        updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c(thecolname)] ) )
-      }
-      
+
+         total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
+         total$Famille <- as.factor(total$Famille)
+         MyData$data <- total
+         updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c(thecolname)] ) )
+       }
+
       updateSelectizeInput(session, 'SelectCode', choices = unique( MyData$data[c("Code")] ) )
       updateSelectizeInput(session, 'SelectTVA', choices = unique( MyData$data[c("Ts %")] ) )
       
