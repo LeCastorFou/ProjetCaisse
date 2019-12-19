@@ -309,6 +309,7 @@ server = function(input, output,session) {
     total <- merge(MyData$data,by="Désignation.Famille", all = T)
     total$MyDataBis <- as.character(total$MyDataBis)
     MyDataBis$data <- total
+    ####################################################"
     
     sendSweetAlert(
       session  =  session ,
