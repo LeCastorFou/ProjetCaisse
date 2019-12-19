@@ -78,7 +78,7 @@ ui <- dashboardPage(
                        tags$br(),
                        fluidRow(
                          column(width = 9, offset = 1,
-                                DTOutput("MyDataBisGraph")
+                                plotOutput("MyDataBisGraph")
                          ))
                      )
                  )))),

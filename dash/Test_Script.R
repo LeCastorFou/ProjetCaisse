@@ -18,8 +18,10 @@ data %>% group_by(TD) %>% summarise(Mont.Soumis = sum(Mont.Soumis))
 
 data <- data[,-3] 
 dataFamilles  <- read.csv2("~/GitHub/R_caisse/dash/dataCodeRayons.csv")
-colnames( dataFamilles )[-1]
-dataFamilles[c('Famille')]
+colnames( dataFamilles )
+df = dataFamilles[,c('Code','Famille')]
+colnames(df) = c('A','B')
+df
 dataFamilles = subset(dataFamilles, select = -c(X) )
 data$Code <- as.numeric(as.character(data$Code))
 dataFamilles$Code <- as.numeric(as.character(dataFamilles$Code))

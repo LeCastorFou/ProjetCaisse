@@ -226,7 +226,7 @@ server = function(input, output,session) {
                                           }
   )
   
-  output$MyDataBisGraph <- DT::renderDataTable( {
+  output$MyDataBisGraph <- renderPlot( {
     df_expose = MyData$data
     df_expose <- df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
     
@@ -240,10 +240,17 @@ server = function(input, output,session) {
     if(is.null(input$SelectFamilles)){df_expose = df_expose}
     else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
     
+    df_expose$Mont.Soumis <- as.numeric(df_expose$Mont.Soumis)
+    df_expose$Mont.TVA <- as.numeric(df_expose$Mont.TVA)
     df_expose$Mont.Total <- as.numeric(df_expose$Mont.Total)
     
-    MyDataBisGraph <- ggplot(df_expose, aes(Désignation.Famille, file=Mont.Total))+geom_bar()      
-  }
+    df_expose = aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
+                          by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
+    colnames(df_expose)
+    colnames(df_expose) = c('Désignation.Famille','Montant soumis' , 'Montant TVA', 'Montant.Total' )
+   ggplot(df_expose[,c('Désignation.Famille','Montant.Total')], aes(x=Désignation.Famille, y=Montant.Total))+geom_bar(stat="identity")   
+   
+  },height = 400,width = 600
   )
   
   # =========================================================================== =
@@ -298,7 +305,7 @@ server = function(input, output,session) {
     updateSelectizeInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Désignation.Famille")] ) )
     write.csv2(dataFamilles, file = "dataFamilles.csv")
     
-    
+    ##### Atention erreur il faut merger MyData$data avec qqchose ...
     total <- merge(MyData$data,by="Désignation.Famille", all = T)
     total$MyDataBis <- as.character(total$MyDataBis)
     MyDataBis$data <- total
