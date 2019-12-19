@@ -95,7 +95,6 @@ server = function(input, output,session) {
                                                              pageLength = 8,
                                                              lengthMenu = c(8, 200, 500, 1000)
                                                            ))# %>% formatStyle('Prix', color = 'red', backgroundColor = 'yellow', fontWeight = 'bold')
-                                           
                                          }
   )
   
@@ -113,7 +112,6 @@ server = function(input, output,session) {
       if(is.null(input$SelectFamilles)){df_expose = df_expose}
       else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
       
-      
       df_expose <- df_expose[,c('Mont.Total','Mont.TVA')]
       df_expose <- data.frame(Sommes=colSums(df_expose))
       
@@ -121,12 +119,11 @@ server = function(input, output,session) {
                       options=list(
                         autoWidth = FALSE, 
                         dom = "none",
-                        columnDefs = list(list(className = 'dt-center') 
-                        )
-                      )
+                        columnDefs = list(list(className = 'dt-center')))
       )
     }
   )
+  
   output$dataCod.Rayons<- DT::renderDataTable(filter='none', rownames = F, editable = T, {
     
     req(input$dataCod.Rayons)
@@ -136,6 +133,7 @@ server = function(input, output,session) {
     dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
   } 
   )
+  
   output$dataFamilles <- DT::renderDataTable(filter='none', rownames = F, editable = T, {
     
     req(input$dataFamilles)
@@ -180,9 +178,6 @@ server = function(input, output,session) {
                                                               pageLength = 15,
                                                               lengthMenu = c(15, 20, 25, 30)
                                                             ))
-                                            
-                                            
-                                            
                                           }
   )
   
@@ -220,9 +215,6 @@ server = function(input, output,session) {
                                                               pageLength = 5,
                                                               lengthMenu = c(5, 6, 7)
                                                             ))
-                                            
-                                            
-                                            
                                           }
   )
   
@@ -250,7 +242,7 @@ server = function(input, output,session) {
     colnames(df_expose) = c('Désignation.Famille','Montant soumis' , 'Montant TVA', 'Montant.Total' )
    ggplot(df_expose[,c('Désignation.Famille','Montant.Total')], aes(x=Désignation.Famille, y=Montant.Total))+geom_bar(stat="identity")   
    
-  },height = 400,width = 600
+  },height = 'auto',width = 'auto'
   )
   
   # =========================================================================== =
@@ -279,7 +271,7 @@ server = function(input, output,session) {
     total <- merge(MyData$data,dataCod.Rayons,by="Code",all = TRUE)
     total$Code <- as.factor(total$Code)
     MyData$data <- total
-    write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
+    write.csv2(dataCod.Rayons, file = "dataCodeRayons.RData")
     
     sendSweetAlert(
       session  =  session , 
@@ -287,7 +279,6 @@ server = function(input, output,session) {
       text  =  "Ce fichier sera dorénavant utiliser pour libeller les articles ..." , 
       type  =  "success" 
     )
-    
   })
   
   observeEvent(input$mergingF, {
@@ -298,18 +289,12 @@ server = function(input, output,session) {
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
     colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
     
-    
+    head(dataFamilles)
     total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
     total$Famille <- as.factor(total$Famille)
     MyData$data <- total
     updateSelectizeInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Désignation.Famille")] ) )
-    write.csv2(dataFamilles, file = "dataFamilles.csv")
-    
-    ##### Atention erreur il faut merger MyData$data avec qqchose ...
-    total <- merge(MyData$data,by="Désignation.Famille", all = T)
-    total$MyDataBis <- as.character(total$MyDataBis)
-    MyDataBis$data <- total
-    ####################################################"
+    write.csv2(dataFamilles, file = "dataFamilles.RData")
     
     sendSweetAlert(
       session  =  session ,
@@ -317,10 +302,7 @@ server = function(input, output,session) {
       text  =  "Ce fichier sera dorénavant utiliser pour libeller les codes familles ..." ,
       type  =  "success"
     )
-    
   })
-  
-  
   
   observeEvent(input$visualisation, {
     
@@ -371,7 +353,6 @@ server = function(input, output,session) {
         dataFamilles = subset(dataFamilles, select = -c(X) )
         thecolname  = colnames( dataFamilles)[-1]
         
-        
         total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
         total$Famille <- as.factor(total$Famille)
         MyData$data <- total
@@ -381,10 +362,8 @@ server = function(input, output,session) {
       updateSelectizeInput(session, 'SelectCode', choices = unique( MyData$data[c("Code")] ) )
       updateSelectizeInput(session, 'SelectTVA', choices = unique( MyData$data[c("Ts %")] ) )
       
-      
       MyDataSum$data <- MyData$data[,c('Prix','Mont.TVA')]
       MyDataSum$data <- data.frame(Sommes=colSums(MyDataSum$data))
-      
       
       sendSweetAlert(
         session = session,
@@ -392,12 +371,11 @@ server = function(input, output,session) {
         text = "Les informations sont disponibles",
         type = "success"
       )
-      
+  
       updateTabItems(session,"tabs",selected= "tab_visualization")
     }
     else
     {
-      
       sendSweetAlert(
         session  =  session , 
         title  =  "Attention !!" , 
@@ -406,7 +384,6 @@ server = function(input, output,session) {
       )
     }
   })
-  
 }
 
 

@@ -24,8 +24,8 @@ ui <- dashboardPage(
   dashboardHeader(title = "ELAN INFO", titleWidth = 300),
   dashboardSidebar(collapsed = TRUE,
                    sidebarMenu(id = "tabs",
-                               menuItem("Dashboard", tabName = "tab_dashboard", icon = icon("dashboard")),
                                menuItem("Lecture des informations ", tabName = "tab_readData", icon = icon("bar-chart-o")),
+                               menuItem("Dashboard", tabName = "tab_dashboard", icon = icon("dashboard")),
                                menuItem("Visualiser des informations", tabName = "tab_visualization", icon = icon("eye")),
                                menuItem("Gestion des familles", tabName = "tab_familles", icon = icon("fas fa-cog"))
                    )
