@@ -40,14 +40,13 @@ server = function(input, output,session) {
                                                                      locale = locale(decimal_mark = ",", 
                                                                                      encoding = "ISO-8859-1"), na = "null", 
                                                                      comment = "//", trim_ws = TRUE)
-                                              attach(dataFile)       
+       
                                               dataFile <<- dataFile[,-3] 
                                             },  options = list(pageLength = 6)
   )
   
   output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none", 
                                          ## caption = "Rapport des ventes",
-                                         # formatCurrency(8:10, '\U20AC', 2), # ???
                                          {
                                            
                                            df_expose = MyData$data
@@ -63,9 +62,7 @@ server = function(input, output,session) {
                                              print(input$SelectFamilles)
                                              print(df_expose[c("Désignation.Famille")])
                                              df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
-                                           }
-                                           
-                                           
+                                           } 
                                            ############################################
                                            if (file.exists("dataCodeRayons.csv"))
                                            { 
@@ -83,18 +80,16 @@ server = function(input, output,session) {
                                            df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]), 
                                                            extension = "Buttons",
                                                            filter='none',
-                                                           # df <- df[, c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")],
                                                            colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'),
-                                                           
                                                            options = list(
-                                                             #"columnDefs":  {"targets": c(3, 6, 8:10) , "searchable": false} 
                                                              autoWidth = TRUE,
                                                              dom = "lftiprB", 
                                                              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
                                                              columnDefs = list(list(className = 'dt-center', targets = "") ),
                                                              pageLength = 8,
                                                              lengthMenu = c(8, 200, 500, 1000)
-                                                           ))# %>% formatStyle('Prix', color = 'red', backgroundColor = 'yellow', fontWeight = 'bold')
+                                                           )) %>% formatCurrency("Mont.Total", currency = "\U20AC  ", interval = 3, mark = ",", digits = 2) 
+                                           # %>% formatStyle('Prix', color = 'red', backgroundColor = 'yellow', fontWeight = 'bold')
                                          }
   )
   
@@ -120,29 +115,24 @@ server = function(input, output,session) {
                         autoWidth = FALSE, 
                         dom = "none",
                         columnDefs = list(list(className = 'dt-center')))
-      )
-    }
-  )
+      ) %>% formatCurrency("Sommes", currency = "\U20AC  ", interval = 3, mark = ",", digits = 2)
+    }) 
   
   output$dataCod.Rayons<- DT::renderDataTable(filter='none', rownames = F, editable = T, {
     
     req(input$dataCod.Rayons)
     
     dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath) 
-    # attach(dataCod.Rayons)
     dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
-  } 
-  )
+  })
   
   output$dataFamilles <- DT::renderDataTable(filter='none', rownames = F, editable = T, {
     
     req(input$dataFamilles)
     
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
-    # attach(dataFamilles)
     dataFamilles <- dataFamilles[,c(-4:-14)]
-  }
-  )
+  })
   
   output$MyDataBis <- DT::renderDataTable(filter='none', rownames = F,
                                           {
@@ -177,7 +167,7 @@ server = function(input, output,session) {
                                                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                               pageLength = 15,
                                                               lengthMenu = c(15, 20, 25, 30)
-                                                            ))
+                                                            )) %>% formatCurrency("Montant Total", ' \U20AC  ', 2)
                                           }
   )
   
@@ -241,7 +231,7 @@ server = function(input, output,session) {
     colnames(df_expose)
     colnames(df_expose) = c('Désignation.Famille','Montant soumis' , 'Montant TVA', 'Montant.Total' )
    ggplot(df_expose[,c('Désignation.Famille','Montant.Total')], aes(x=Désignation.Famille, y=Montant.Total))+geom_bar(stat="identity")   
-   
+
   },height = 'auto',width = 'auto'
   )
   
@@ -265,13 +255,14 @@ server = function(input, output,session) {
     
     dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
     dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
+    
     MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
     dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
     
     total <- merge(MyData$data,dataCod.Rayons,by="Code",all = TRUE)
     total$Code <- as.factor(total$Code)
     MyData$data <- total
-    write.csv2(dataCod.Rayons, file = "dataCodeRayons.RData")
+    write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
     
     sendSweetAlert(
       session  =  session , 
@@ -287,14 +278,15 @@ server = function(input, output,session) {
     
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
+    
+    MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
+    
     colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
     
-    head(dataFamilles)
     total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
     total$Famille <- as.factor(total$Famille)
     MyData$data <- total
-    updateSelectizeInput(session, 'SelectFamilles', choices = unique( MyData$data[c("Désignation.Famille")] ) )
-    write.csv2(dataFamilles, file = "dataFamilles.RData")
+    write.csv2(dataFamilles, file = "dataFamilles.csv")
     
     sendSweetAlert(
       session  =  session ,
@@ -324,7 +316,6 @@ server = function(input, output,session) {
       )
       
       MyData$data <- MyData$data[,-3,]
-      # MyDataBis <- df[, c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
       MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
       
       # Merge avec le fichier des codes articles si il existe dans le répertoire courant
