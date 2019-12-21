@@ -253,9 +253,9 @@ server = function(input, output,session) {
     
     dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
     dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
-    if (file.exists("~/R/MyShinyAPP/dash/dataFamilles.csv"))
+    if (file.exists("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv"))
     {
-      dataFamilles <- read.table("~/R/MyShinyAPP/dash/dataFamilles.csv",header = T, sep = ";", quote = '"', dec = ".")
+      dataFamilles <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv",header = T, sep = ";", quote = '"', dec = ".")
       dataFamilles <- read.csv2(input$dataFamilles$datapath)
       dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
       MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
@@ -290,7 +290,7 @@ server = function(input, output,session) {
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
     if (file.exists("dataCodeRayons.csv"))
     {    
-      dataCod.Rayons <- read.table("~/R/MyShinyAPP/dash/dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
+      dataCod.Rayons <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
       dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
       colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
       MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
