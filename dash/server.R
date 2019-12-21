@@ -40,7 +40,7 @@ server = function(input, output,session) {
                                                                      locale = locale(decimal_mark = ",", 
                                                                                      encoding = "ISO-8859-1"), na = "null", 
                                                                      comment = "//", trim_ws = TRUE)
-       
+                                              
                                               dataFile <<- dataFile[,-3] 
                                             },  options = list(pageLength = 6)
   )
@@ -48,7 +48,6 @@ server = function(input, output,session) {
   output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none", 
                                          ## caption = "Rapport des ventes",
                                          {
-                                           
                                            df_expose = MyData$data
                                            # Gerer la selection des codes articles
                                            if(is.null(input$SelectCode)){df_expose = df_expose}
@@ -63,10 +62,10 @@ server = function(input, output,session) {
                                              print(df_expose[c("Désignation.Famille")])
                                              df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
                                            } 
-                                           ############################################
+                                           
                                            if (file.exists("dataCodeRayons.csv"))
                                            { 
-                                           df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
+                                             df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
                                            }
                                            else if (file.exists("dataFamilles.csv"))
                                            {
@@ -76,7 +75,7 @@ server = function(input, output,session) {
                                            {
                                              df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
                                            }
-                                           ####################################################################
+                                           
                                            df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]), 
                                                            extension = "Buttons",
                                                            filter='none',
@@ -95,7 +94,6 @@ server = function(input, output,session) {
   
   output$dataFileSum <- DT::renderDataTable(
     {
-      
       df_expose = MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
       # Gerer la selection des codes articles
       if(is.null(input$SelectCode)){df_expose = df_expose}
@@ -230,8 +228,8 @@ server = function(input, output,session) {
                           by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
     colnames(df_expose)
     colnames(df_expose) = c('Désignation.Famille','Montant soumis' , 'Montant TVA', 'Montant.Total' )
-   ggplot(df_expose[,c('Désignation.Famille','Montant.Total')], aes(x=Désignation.Famille, y=Montant.Total))+geom_bar(stat="identity")   
-
+    ggplot(df_expose[,c('Désignation.Famille','Montant.Total')], aes(x=Désignation.Famille, y=Montant.Total))+geom_bar(stat="identity")   
+    
   },height = 'auto',width = 'auto'
   )
   
@@ -255,13 +253,25 @@ server = function(input, output,session) {
     
     dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
     dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
-    
-    MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
-    dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
-    
-    total <- merge(MyData$data,dataCod.Rayons,by="Code",all = TRUE)
-    total$Code <- as.factor(total$Code)
-    MyData$data <- total
+    if (file.exists("~/R/MyShinyAPP/dash/dataFamilles.csv"))
+    {
+      dataFamilles <- read.table("~/R/MyShinyAPP/dash/dataFamilles.csv",header = T, sep = ";", quote = '"', dec = ".")
+      dataFamilles <- read.csv2(input$dataFamilles$datapath)
+      dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
+      MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
+      colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
+      total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
+      total$Famille <- as.factor(total$Famille)
+      MyData$data <- total
+    }
+    else
+    {
+      MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
+      dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
+      total <- merge(MyData$data,dataCod.Rayons,by="Code",all = TRUE)
+      total$Code <- as.factor(total$Code)
+      MyData$data <- total
+    }
     write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
     
     sendSweetAlert(
@@ -278,22 +288,35 @@ server = function(input, output,session) {
     
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
-    
-    MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
-    
-    colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
-    
-    total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
-    total$Famille <- as.factor(total$Famille)
-    MyData$data <- total
-    write.csv2(dataFamilles, file = "dataFamilles.csv")
-    
-    sendSweetAlert(
-      session  =  session ,
-      title  =  "Succes !!" ,
-      text  =  "Ce fichier sera dorénavant utiliser pour libeller les codes familles ..." ,
-      type  =  "success"
-    )
+    if (file.exists("dataCodeRayons.csv"))
+    {    
+      dataCod.Rayons <- read.table("~/R/MyShinyAPP/dash/dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
+      dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
+      colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
+      MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
+      dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
+      
+      total <- merge(MyData$data,dataCod.Rayons,by="Code",all = TRUE)
+      total$Code <- as.factor(total$Code)
+      MyData$data <- total   
+      
+      write.csv2(dataFamilles, file = "dataFamilles.csv")
+      sendSweetAlert(
+        session  =  session ,
+        title  =  "Succes !!" ,
+        text  =  "Ce fichier sera dorénavant utiliser pour libeller les codes familles ..." ,
+        type  =  "success"
+      )
+    }
+    else 
+    {
+      sendSweetAlert(
+        session  =  session ,
+        title  =  "attention !!" ,
+        text  =  "Veuillez charger la table codes rayons en premier" ,
+        type  =  "warning"
+      )
+    }
   })
   
   observeEvent(input$visualisation, {
@@ -362,7 +385,7 @@ server = function(input, output,session) {
         text = "Les informations sont disponibles",
         type = "success"
       )
-  
+      
       updateTabItems(session,"tabs",selected= "tab_visualization")
     }
     else
@@ -376,11 +399,3 @@ server = function(input, output,session) {
     }
   })
 }
-
-
-
-
-
-
-
-
