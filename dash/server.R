@@ -16,7 +16,7 @@ server = function(input, output,session) {
   MYdataFamilles <- reactiveValues()
   MYdataCod.Rayons <- reactiveValues()
   
-  output$tab_preview <- DT::renderDataTable(filter='none', rownames = F,
+  output$tab_preview <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
                                             colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
                                             {
                                               options(
