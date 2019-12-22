@@ -13,6 +13,8 @@ server = function(input, output,session) {
   MyDataBis <- reactiveValues()
   MyDataTVA <- reactiveValues()
   MyDataBisGraph <- reactiveValues()
+  MYdataFamilles <- reactiveValues()
+  MYdataCod.Rayons <- reactiveValues()
   
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F,
                                             colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
@@ -78,6 +80,7 @@ server = function(input, output,session) {
                                            
                                            df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]), 
                                                            extension = "Buttons",
+                                                           selection = 'none',
                                                            filter='none',
                                                            colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'),
                                                            options = list(
@@ -109,6 +112,7 @@ server = function(input, output,session) {
       df_expose <- data.frame(Sommes=colSums(df_expose))
       
       df <- datatable(df_expose,
+                      selection = 'none',
                       options=list(
                         autoWidth = FALSE, 
                         dom = "none",
@@ -124,7 +128,7 @@ server = function(input, output,session) {
     dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
   })
   
-  output$dataFamilles <- DT::renderDataTable(filter='none', rownames = F, editable = T, {
+  output$dataFamilles <- DT::renderDataTable(filter='none', rownames = F, editable = T, selection = 'none', {
     
     req(input$dataFamilles)
     
@@ -132,7 +136,7 @@ server = function(input, output,session) {
     dataFamilles <- dataFamilles[,c(-4:-14)]
   })
   
-  output$MyDataBis <- DT::renderDataTable(filter='none', rownames = F,
+  output$MyDataBis <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
                                           {
                                             df_expose = MyData$data
                                             df_expose <- df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
@@ -233,6 +237,13 @@ server = function(input, output,session) {
   },height = 'auto',width = 'auto'
   )
   
+  output$MyDataCod.Rayons <- DT::renderDataTable(
+    {
+      
+      
+      
+    }
+  )
   # =========================================================================== =
   ## Preview ----
   # =========================================================================== =
@@ -255,7 +266,7 @@ server = function(input, output,session) {
     dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
     if (file.exists("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv"))
     {
-      dataFamilles <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv",header = T, sep = ";", quote = '"', dec = ".")
+      dataFamilles <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv", header = T, sep = ";", quote = '"', dec = ".")
       dataFamilles <- read.csv2(input$dataFamilles$datapath)
       dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
       MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
@@ -288,7 +299,7 @@ server = function(input, output,session) {
     
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
-    if (file.exists("dataCodeRayons.csv"))
+    if (file.exists("~/R/ProjetCaisse/ProjetCaisse/dash/dataCodeRayons.csv"))
     {    
       dataCod.Rayons <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
       dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
@@ -398,4 +409,39 @@ server = function(input, output,session) {
       )
     }
   })
+  
+  observeEvent(input$saveRBtn, {
+    
+    dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath) 
+    dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
+    dataCod.Rayons <- dataCod.Rayons[,c(-2:-4)]
+    write.csv2(dataCod.Rayons, "dataCodeRayons.csv"
+    )
+    
+    sendSweetAlert(
+      session = session,
+      title = "Le fichier a bien été sauvegarder !",
+      text = "Les informations sont disponibles",
+      type = "success"
+    )
+   }
+  )
+  
+  observeEvent(input$saveFBtn, {
+    
+    dataFamilles <- read.csv2(input$dataFamilles$datapath)
+    dataFamilles <- dataFamilles[,c(-4:-14)]
+    dataFamilles <- dataFamilles[,-3]
+    dataFamilles <- dataFamilles[,c('Code', 'Désignation')]
+    colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
+    write.csv2(dataFamilles, "dataFamilles.csv")
+    
+    sendSweetAlert(
+      session = session,
+      title = "Le fichier a bien été sauvegarder !",
+      text = "Les informations sont disponibles",
+      type = "success"
+    )
+   }
+  )
 }

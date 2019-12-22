@@ -1,7 +1,6 @@
 
 ## BIBLIOTHEQUE ----
 # ####################### #
-
 library(shiny)
 library(shinythemes)
 library(shinydashboard)
@@ -150,16 +149,18 @@ ui <- dashboardPage(
             offset = -1,
             h3("Gestion des familles")),
           column( 
-            width = 3, 
+            width = 4, 
             offset = 1,
             fileInput("dataFamilles",label = "Familles",buttonLabel = "Navigateur...", placeholder = "Selectionner un fichier"),
-            actionButton(inputId = "mergingF", label = "utiliser", icon = icon("upload"))   
+            actionButton(inputId = "mergingF", label = "Charger la table", icon = icon("upload")), 
+            actionButton(inputId = "saveFBtn", label = "Sauvegarder", icon = icon("wrench"))
           ),
           column(
-            width = 3, 
+            width = 5, 
             offset = 1,
             fileInput("dataCod.Rayons",label = "Codes Rayons",buttonLabel = "Navigateur...", placeholder = "Selectionner un fichier"),
-            actionButton(inputId = "merging", label = "Sauvegarder", icon = icon("upload"))  
+            actionButton(inputId = "merging", label = "Charger la table", icon = icon("upload")),
+            actionButton(inputId = "saveRBtn", label = "Sauvegarder", icon = icon("wrench"))
           ),
           fluidRow(
             column(
