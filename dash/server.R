@@ -65,11 +65,11 @@ server = function(input, output,session) {
                                              df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
                                            } 
                                            
-                                           if (file.exists("dataCodeRayons.csv"))
+                                           if (file.exists("dataCodeRayons.rds"))
                                            { 
                                              df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
                                            }
-                                           else if (file.exists("dataFamilles.csv"))
+                                           else if (file.exists("dataFamilles.rdf"))
                                            {
                                              df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
                                            }
@@ -264,9 +264,10 @@ server = function(input, output,session) {
     
     dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
     dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
-    if (file.exists("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv"))
+    if (file.exists("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.rds"))
     {
-      dataFamilles <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv", header = T, sep = ";", quote = '"', dec = ".")
+      dataFamilles = readRDS(file = "dataFamilles.rds")
+      #dataFamilles <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv", header = T, sep = ";", quote = '"', dec = ".")
       dataFamilles <- read.csv2(input$dataFamilles$datapath)
       dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
       MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
@@ -283,7 +284,8 @@ server = function(input, output,session) {
       total$Code <- as.factor(total$Code)
       MyData$data <- total
     }
-    write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
+    saveRDS(dataCod.Rayons, file = "dataCodeRayons.rds")
+    #write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
     
     sendSweetAlert(
       session  =  session , 
@@ -299,9 +301,10 @@ server = function(input, output,session) {
     
     dataFamilles <- read.csv2(input$dataFamilles$datapath)
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
-    if (file.exists("~/R/ProjetCaisse/ProjetCaisse/dash/dataCodeRayons.csv"))
-    {    
-      dataCod.Rayons <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
+    if (file.exists("dataCodeRayons.rds"))
+    { 
+      dataCod.Rayons <- readRDS(file = "dataCodeRayons.rds")
+      #dataCod.Rayons <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
       dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
       colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
       MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
@@ -311,7 +314,9 @@ server = function(input, output,session) {
       total$Code <- as.factor(total$Code)
       MyData$data <- total   
       
-      write.csv2(dataFamilles, file = "dataFamilles.csv")
+      saveRDS(dataFamilles, file = "dataFamilles.rds")
+      #write.csv2(dataFamilles, file = "dataFamilles.csv")
+      
       sendSweetAlert(
         session  =  session ,
         title  =  "Succes !!" ,
@@ -353,11 +358,10 @@ server = function(input, output,session) {
       MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
       
       # Merge avec le fichier des codes articles si il existe dans le répertoire courant
-      if (file.exists("dataCodeRayons.csv"))
+      if (file.exists("dataCodeRayons.rds"))
       { 
         print("file dataCodeRayons exist")
-        dataCod.Rayons <- read.csv2("dataCodeRayons.csv")
-        dataCod.Rayons = subset(dataCod.Rayons, select = -c(X) )
+        dataCod.Rayons <- readRDS(file = "dataCodeRayons.csv") 
         
         MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
         dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
@@ -368,14 +372,14 @@ server = function(input, output,session) {
       }
       
       # Merge avec le fichier des codes familles si il existe dans le répertoire courant
-      if (file.exists("dataFamilles.csv"))
+      if (file.exists("dataFamilles.rds"))
       {
         print("file dataFamilles exist")
-        dataFamilles <- read.csv2("dataFamilles.csv")
+        dataFamilles <- readRDS(file = "dataFamilles.rds")
         MyData$data$Famille <- as.numeric(as.character(MyData$data$Famille))
         print(colnames( MyData$data))
         dataFamilles$Famille <- as.numeric(as.character(dataFamilles$Famille))
-        dataFamilles = subset(dataFamilles, select = -c(X) )
+        
         thecolname  = colnames( dataFamilles)[-1]
         
         total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
@@ -385,7 +389,11 @@ server = function(input, output,session) {
       }
       
       updateSelectizeInput(session, 'SelectCode', choices = unique( MyData$data[c("Code")] ) )
-      updateSelectizeInput(session, 'SelectTVA', choices = unique( MyData$data[c("Ts %")] ) )
+      myu <- na.omit(unique( MyData$data[c("Ts %")] ))
+      colnames(myu) <- c('TS')
+      myu <- myu[order(myu$TS),]
+      print(myu)
+      updateSelectizeInput(session, 'SelectTVA', choices = myu )
       
       MyDataSum$data <- MyData$data[,c('Prix','Mont.TVA')]
       MyDataSum$data <- data.frame(Sommes=colSums(MyDataSum$data))
@@ -415,8 +423,9 @@ server = function(input, output,session) {
     dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath) 
     dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
     dataCod.Rayons <- dataCod.Rayons[,c(-2:-4)]
-    write.csv2(dataCod.Rayons, "dataCodeRayons.csv"
-    )
+    saveRDS(dataCod.Rayons, file = "dataCodeRayons.rds")
+    #write.csv2(dataCod.Rayons, "dataCodeRayons.csv")
+    
     
     sendSweetAlert(
       session = session,
@@ -434,7 +443,8 @@ server = function(input, output,session) {
     dataFamilles <- dataFamilles[,-3]
     dataFamilles <- dataFamilles[,c('Code', 'Désignation')]
     colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
-    write.csv2(dataFamilles, "dataFamilles.csv")
+    saveRDS(dataFamilles, file = "dataFamilles.rds")
+    #write.csv2(dataFamilles, "dataFamilles.csv")
     
     sendSweetAlert(
       session = session,

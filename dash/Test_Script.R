@@ -12,6 +12,17 @@ data <- read_delim("~/Dropbox/Cours_R/ProjetCaisse/Rapports_Articles-20191124131
                                    encoding = "ISO-8859-1"), na = "null", 
                    comment = "//", trim_ws = TRUE 
 )
+
+myu <- na.omit(unique( data[c("Ts %")] ))
+colnames(myu) <- c('TS')
+myu[order(myu$TS),]
+
+
+
+saveRDS(data, file = "my_data.rds")
+df <- readRDS(file = "my_data.rds")
+
+
 data <- data[,c("Mont.Soumis","TD")]
 data %>% group_by(TD) %>% summarise(Mont.Soumis = sum(Mont.Soumis))
 
