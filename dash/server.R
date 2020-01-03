@@ -1,8 +1,3 @@
-# setwd("/cloud/project")
-# dataFile <- read.table(file.choose(),header = T, sep = ";", quote = '"', dec = ".")
-# as_tibble(dataFile)
-# head(dataFile)
-# mode(dataFile)
 # ####################### # 
 ## SERVER ----
 # ####################### #
@@ -19,7 +14,10 @@ server = function(input, output,session) {
   TabMod2Paiement <- reactiveValues()
   TabMod2P <- reactiveValues()
   tabDataPay <- reactiveValues()
-  
+ 
+ # if(input$marque) {  
+   # marque = 1 
+    
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
                                             colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
                                             {
@@ -41,7 +39,6 @@ server = function(input, output,session) {
                                                                        Code = col_factor(),
                                                                        Designation = col_character(),
                                                                        `Qte` = col_number(),
-                                                                       # `Ts %` = col_factor(levels = c()),
                                                                        Mont.Total = col_number()),
                                                                      locale = locale(decimal_mark = ",", 
                                                                                      encoding = "ISO-8859-1"), na = "null", 
@@ -52,8 +49,7 @@ server = function(input, output,session) {
                                             },  options = list(pageLength = 6)
   )
   
-  output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none",
-                                         ## caption = "Rapport des ventes",
+  output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none", ## caption = "Rapport des ventes",
                                          {
                                            df_expose = MyData$data # %>% arrange(desc("Date", "Heure")) 
                                            # Gerer la selection des codes articles
@@ -69,7 +65,6 @@ server = function(input, output,session) {
                                              print(df_expose[c("Désignation.Famille")])
                                              df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
                                            } 
-                                           
                                            if (file.exists("dataCodeRayons.rds"))
                                            { 
                                              df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
@@ -97,7 +92,6 @@ server = function(input, output,session) {
                                                              lengthMenu = c(8, 200, 500, 1000)
                                                            )) %>% formatCurrency("Mont.Total", currency = "  \U20AC  ", digits = 2, interval = 3, mark = " ")
                                            # %>% formatStyle('Prix', color = 'red', backgroundColor = 'yellow', fontWeight = 'bold')
-                                           
                                          }
   )
   
@@ -208,7 +202,6 @@ server = function(input, output,session) {
                                             df_expose <- aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
                                                                    by=list('Ts %'=df_expose$'Ts %'), FUN=sum)
                                             
-                                            
                                             print(df_expose)
                                             df <- datatable(df_expose, rownames = F,
                                                             colnames = c('Taux de TVA' = 'Ts %', 'Montant TVA' = 'V2', 'Montant HT'= 'V1', 'Montant TTC' = "V3"),
@@ -251,13 +244,6 @@ server = function(input, output,session) {
   },height = 'auto',width = 'auto'
   )
   
-  # output$TabMod2Paiement <- DT::renderDataTable(
-  #   {
-  #     TabMod2Paiement <- read.csv2("Rapports_Mode_de_paiement.RData")
-  #      TabMod2Paiement <- TabMod2Paiement[,-1]
-  # 
-  # } )
-  
   output$TabMod2Paiement <- renderRHandsontable( {
     attach(TabMod2Paiement)
     TabMod2Paiement <- read_delim("Rapports_Mode_de_paiement.RData", delim = ";",
@@ -265,22 +251,20 @@ server = function(input, output,session) {
                                   locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", 
                                   comment = "//", trim_ws = TRUE) 
     
-    
     TabMod2Paiement$Mont.Total <- as.numeric(TabMod2Paiement$Mont.Total)
     TabMod2Paiement$T.Règlement <- as.integer(TabMod2Paiement$T.Règlement)
     rhandsontable(TabMod2Paiement)
-    
-  })
+  }  
+   )
   
   output$tabDataPay <- DT::renderDataTable(filter='none', rownames = F, editable = F, selection = 'none', {
     
-    #  tabDataPay <- read.csv2(input$dataPay$datapath, )
     tabDataPay <- read_delim(input$dataPay$datapath, delim = ";",
                              escape_double = FALSE, quote = '"',
                              locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null",
                              comment = "//", trim_ws = TRUE)
-    
-  })
+  }  
+    )
   
   # =========================================================================== =
   ## Preview ----
@@ -289,16 +273,8 @@ server = function(input, output,session) {
   observeEvent(input$TabMod2Paiement, {
     
     saveRDS(hot_to_r(input$TabMod2Paiement), file = "Rapports_Mode_de_paiement.rds")
-    # write.csv2(hot_to_r(input$TabMod2Paiement), file = "Rapports_Mode_de_paiement.csv", row.names = F)
-    
-    # sendSweetAlert(
-    #   session = session,
-    #   title = "Le fichier a bien été sauvegarder !",
-    #   text = "Les informations sont disponibles",
-    #   type = "success"
-    # )
   }
-  )
+    )
   observeEvent(input$UploadFile, {
     updateTabItems(session,"tabs",selected= "tab_readData")
   })
@@ -340,7 +316,6 @@ server = function(input, output,session) {
       MyData$data <- total
     }
     saveRDS(dataCod.Rayons, file = "dataCodeRayons.rds")
-    write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
     
     sendSweetAlert(
       session  =  session , 
@@ -373,7 +348,7 @@ server = function(input, output,session) {
       MyData$data <- total   
       
       saveRDS(dataFamilles, file = "dataFamilles.rds")
-      write.csv2(dataFamilles, file = "dataFamilles.csv")
+     # write.csv2(dataFamilles, file = "dataFamilles.csv")
       sendSweetAlert(
         session  =  session ,
         title  =  "Succes !!" ,
@@ -420,8 +395,7 @@ server = function(input, output,session) {
       if (file.exists("dataCodeRayons.rds"))
       { 
         print("file dataCodeRayons exist")
-        # dataCod.Rayons <- read.csv2("dataCodeRayons.csv")
-        # dataCod.Rayons = subset(dataCod.Rayons, select = -c(X) )
+        # dataCod.Rayons <- read.csv2("dataCodeRayons.csv")  # dataCod.Rayons = subset(dataCod.Rayons, select = -c(X) )
         dataCod.Rayons <- readRDS(file = "dataCodeRayons.rds")
         
         MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
@@ -500,16 +474,14 @@ server = function(input, output,session) {
     dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
     dataCod.Rayons <- dataCod.Rayons[,c(-2:-4)]
     saveRDS(dataCod.Rayons, file = "dataCod.Rayons.rds"
-            # write.csv2(dataCod.Rayons, "dataCodeRayons.csv"
-    )
-    
+  )
     sendSweetAlert(
       session = session,
       title = "Le fichier a bien été sauvegarder !",
       text = "Les informations sont disponibles",
       type = "success"
     )
-  }
+   }
   )
   
   observeEvent(input$saveFBtn, {
@@ -523,7 +495,6 @@ server = function(input, output,session) {
     dataFamilles <- dataFamilles[,c('Code', 'Désignation')]
     colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
     saveRDS(dataFamilles, file = "dataFamilles.rds")
-    # write.csv2(dataFamilles, "dataFamilles.csv")
     
     sendSweetAlert(
       session = session,
@@ -531,6 +502,46 @@ server = function(input, output,session) {
       text = "Les informations sont disponibles",
       type = "success"
     )
-  }
+   }
   )
+ # }
+  # else {
+  #   output$tab_preview <- renderDataTable(filter='none',{
+  #     
+  #     
+  #     req(input$dataFile)
+  #     
+  #     df <- read.csv2(input$dataFile$datapath,
+  #                     header = as.logical(input$header),
+  #                     sep = input$sep,
+  #                     quote = input$quote,
+  #                     nrows=5
+  #     )
+  #   },  options = list(scrollX = TRUE , dom = 't'))
+  #   
+  #   output$dataFile <- renderDataTable(filter='top',{
+  #     req(input$dataFile)
+  #     dataFile <- read_delim(input$dataFile$datapath,                      
+  #                            ";", quote = "\\\"", escape_double = FALSE,
+  #                            locale = locale(date_names = "fr", 
+  #                                            decimal_mark = ",", 
+  #                                            encoding = "ISO-8859-1"), 
+  #                            trim_ws = TRUE)
+  #     
+  #     dataFile %>% filter('Date' >= input$dateRange[1] & 'Date' <= input$dateRange[2])                       
+  #     
+  #   },  options = list(scrollX = TRUE , dom = 't')
+  #   )
+  # }
+  # observe(input$tab_preview, {
+  #   
+  #   if(!is.null(input$dataFile$datapath)){
+  #     data$table = read.csv(input$dataFile$datapath,
+  #                           header = as.logical(input$header),
+  #                           sep = input$sep,
+  #                           quote = input$quote)
+  #     updateTabItems(session, "tabs", selected = "tab_preview")
+  #   }
+  # })
+    
 }

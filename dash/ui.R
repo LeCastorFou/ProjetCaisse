@@ -64,7 +64,7 @@ ui <- dashboardPage(
         fluidRow( 
           column(width = 12, offset = -1,
                  (actionButton(inputId = "UploadFile", label = "Charger des informations", icon = icon("play"))),
-                 (actionButton(inputId = "ModFile", label = "Changer les filtres", icon = icon("play"))),
+                 (actionButton(inputId = "ModFile", label = "Modifier les filtres", icon = icon("play"))),
                  shinythemes::themeSelector(),
                  # tags$br(), -- ne pas toucher
                  box(title = "Synthèse des ventes par famille",
@@ -141,8 +141,8 @@ ui <- dashboardPage(
                 radioButtons(
                   inputId = "marque",
                   label = "Marque",
-                  choices = c(Aucun = "","Marques" = '"',"EXA" = "'"),
-                  selected = TRUE, inline=T
+                  choices = c(Aucun = "0","Marques" = '1',"EXA" = "2"),
+                  selected = "1", inline=T
                 )))),
         fluidRow(
           column(
