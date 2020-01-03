@@ -1,6 +1,7 @@
 
 ## BIBLIOTHEQUE ----
 # ####################### #
+#library(rsconnect)
 library(shiny)
 library(shinythemes)
 library(shinydashboard)
@@ -13,6 +14,8 @@ library(readr)
 library(data.table)
 library(shinyWidgets)
 #library(tidyverse)
+library(devtools)
+library(rhandsontable)
 
 # ####################### #
 ## UI ----
@@ -63,24 +66,40 @@ ui <- dashboardPage(
                  (actionButton(inputId = "UploadFile", label = "Charger des informations", icon = icon("play"))),
                  (actionButton(inputId = "ModFile", label = "Changer les filtres", icon = icon("play"))),
                  shinythemes::themeSelector(),
-                 tags$br(),
+                 # tags$br(), -- ne pas toucher
                  box(title = "Synthèse des ventes par famille",
                      fluidRow(
-                       column(width = 9, offset = 1,
-                              DTOutput("MyDataBis")
-                       ))),
-                 box(title = "Synthèse des ventes par TVA",
-                     fluidRow(
-                       column(width = 9, offset = 1,
-                              DTOutput("MyDataTVA")
-                       ),
-                       tags$br(),
-                       fluidRow(
-                         column(width = 9, offset = 1,
-                                plotOutput("MyDataBisGraph")
-                         ))
+                       column(width = 11, # offset = 1,
+                              DTOutput("MyDataBis"),
+                              tags$br()
+                       ))
+                 ),
+                 box(# title = fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Charger le apport des modes de paiement "),
+                   # column(width = 12, offset= -1,
+                   fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Charger le rapport des modes de paiement "
+                   ),
+                   fluidRow(
+                     column(width = 12, offset = -1,
+                            tabsetPanel(
+                              tabPanel("Mode de paiement", rHandsontableOutput("TabMod2Paiement")),
+                              tabPanel("Table téléchargée", dataTableOutput("tabDataPay"))
+                            )
                      )
-                 )))),
+                   ),
+                   fluidRow(
+                     title = "Synthèse des ventes par TVA",
+                     column(width = 12, # offset = 1,
+                            tags$br(),
+                            DTOutput("MyDataTVA")
+                     ),
+                     fluidRow(
+                       column(width = 12, # offset = 1,
+                              tags$br(),
+                              plotOutput("MyDataBisGraph")
+                       ))
+                   ))
+          ))
+      ),
       tabItem(
         tabName = "tab_readData",
         box(title = "Informations d'importation",
