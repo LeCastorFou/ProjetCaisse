@@ -1,4 +1,4 @@
-# setwd("~/R/MyShinyAPP")
+# setwd("/cloud/project")
 # dataFile <- read.table(file.choose(),header = T, sep = ";", quote = '"', dec = ".")
 # as_tibble(dataFile)
 # head(dataFile)
@@ -15,6 +15,10 @@ server = function(input, output,session) {
   MyDataBisGraph <- reactiveValues()
   MYdataFamilles <- reactiveValues()
   MYdataCod.Rayons <- reactiveValues()
+  dataPay <- reactiveValues()
+  TabMod2Paiement <- reactiveValues()
+  TabMod2P <- reactiveValues()
+  tabDataPay <- reactiveValues()
   
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
                                             colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
@@ -27,7 +31,7 @@ server = function(input, output,session) {
                                                   lengthMenu = c(6, 10, 50, 100)
                                                 )
                                               )
-                                              req(input$dataFile)
+                                              req(input$dataFile) 
                                               
                                               dataFile <- read_delim(input$dataFile$datapath,
                                                                      ";", escape_double = FALSE,
@@ -44,13 +48,14 @@ server = function(input, output,session) {
                                                                      comment = "//", trim_ws = TRUE)
                                               
                                               dataFile <<- dataFile[,-3] 
+                                              
                                             },  options = list(pageLength = 6)
   )
   
-  output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none", 
+  output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none",
                                          ## caption = "Rapport des ventes",
                                          {
-                                           df_expose = MyData$data
+                                           df_expose = MyData$data # %>% arrange(desc("Date", "Heure")) 
                                            # Gerer la selection des codes articles
                                            if(is.null(input$SelectCode)){df_expose = df_expose}
                                            else{df_expose = df_expose[df_expose$Code %in% input$SelectCode, ]}
@@ -69,7 +74,7 @@ server = function(input, output,session) {
                                            { 
                                              df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
                                            }
-                                           else if (file.exists("dataFamilles.rdf"))
+                                           else if (file.exists("dataFamilles.rds"))
                                            {
                                              df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Famille", "Code", "Désignation", "Désignation.Famille", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
                                            }
@@ -78,7 +83,7 @@ server = function(input, output,session) {
                                              df_expose = df_expose[,c("Date", "Heure", "Réf.Doc.", "Code", "Désignation", "Qté", "Ts %", "Prix", "Mont.Soumis", "Mont.TVA", "Mont.Total")]
                                            }
                                            
-                                           df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]), 
+                                           df <- datatable(df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2]),
                                                            extension = "Buttons",
                                                            selection = 'none',
                                                            filter='none',
@@ -90,8 +95,9 @@ server = function(input, output,session) {
                                                              columnDefs = list(list(className = 'dt-center', targets = "") ),
                                                              pageLength = 8,
                                                              lengthMenu = c(8, 200, 500, 1000)
-                                                           )) %>% formatCurrency("Mont.Total", currency = "\U20AC  ", interval = 3, mark = ",", digits = 2) 
+                                                           )) %>% formatCurrency("Mont.Total", currency = "  \U20AC  ", digits = 2, interval = 3, mark = " ")
                                            # %>% formatStyle('Prix', color = 'red', backgroundColor = 'yellow', fontWeight = 'bold')
+                                           
                                          }
   )
   
@@ -117,28 +123,35 @@ server = function(input, output,session) {
                         autoWidth = FALSE, 
                         dom = "none",
                         columnDefs = list(list(className = 'dt-center')))
-      ) %>% formatCurrency("Sommes", currency = "\U20AC  ", interval = 3, mark = ",", digits = 2)
+      ) %>% formatCurrency("Sommes", currency = "  \U20AC  ", digits = 2, interval = 3, mark = " ")
     }) 
   
-  output$dataCod.Rayons<- DT::renderDataTable(filter='none', rownames = F, editable = T, {
+  output$dataCod.Rayons<- DT::renderDataTable(filter='none', rownames = F, editable = F, {
     
     req(input$dataCod.Rayons)
     
-    dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath) 
+    dataCod.Rayons <- read_delim(input$dataCod.Rayons$datapath, delim = ";",
+                                 escape_double = FALSE, quote = '"',
+                                 locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", 
+                                 comment = "//", trim_ws = TRUE) 
     dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
   })
   
-  output$dataFamilles <- DT::renderDataTable(filter='none', rownames = F, editable = T, selection = 'none', {
+  output$dataFamilles <- DT::renderDataTable(filter='none', rownames = F, editable = F, selection = 'none', {
     
     req(input$dataFamilles)
     
-    dataFamilles <- read.csv2(input$dataFamilles$datapath)
-    dataFamilles <- dataFamilles[,c(-4:-14)]
+    dataFamilles <- read_delim(input$dataFamilles$datapath, delim = ";",
+                               escape_double = FALSE, quote = '"',
+                               locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", 
+                               comment = "//", trim_ws = TRUE)
+    dataFamilles <- dataFamilles[,c(-3:-14)]
+    
   })
   
   output$MyDataBis <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
                                           {
-                                            df_expose = MyData$data
+                                            df_expose = MyData$data 
                                             df_expose <- df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
                                             
                                             # Gerer la selection des codes articles
@@ -152,13 +165,13 @@ server = function(input, output,session) {
                                             else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
                                             
                                             df_expose$Mont.Soumis <- as.numeric(df_expose$Mont.Soumis)
-                                            df_expose$Mont.TVA <- as.numeric(df_expose$Mont.TVA)
+                                            df_expose$Mont.TVA <- as.numeric(df_expose$Mont.TVA) 
                                             df_expose$Mont.Total <- as.numeric(df_expose$Mont.Total)
                                             
                                             df_expose = aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
                                                                   by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
                                             
-                                            print(df_expose)
+                                            print(df_expose) 
                                             df <- datatable(df_expose, rownames = F,
                                                             colnames = c('Montant soumis' = 'V1', 'Montant TVA' = 'V2', 'Montant Total' = 'V3'),
                                                             extension = "Buttons",
@@ -169,7 +182,7 @@ server = function(input, output,session) {
                                                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                               pageLength = 15,
                                                               lengthMenu = c(15, 20, 25, 30)
-                                                            )) %>% formatCurrency("Montant Total", ' \U20AC  ', 2)
+                                                            )) %>% formatCurrency("Montant Total", currency = "  \U20AC  ", digits = 2, interval = 3, mark = " ")
                                           }
   )
   
@@ -195,6 +208,7 @@ server = function(input, output,session) {
                                             df_expose <- aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
                                                                    by=list('Ts %'=df_expose$'Ts %'), FUN=sum)
                                             
+                                            
                                             print(df_expose)
                                             df <- datatable(df_expose, rownames = F,
                                                             colnames = c('Taux de TVA' = 'Ts %', 'Montant TVA' = 'V2', 'Montant HT'= 'V1', 'Montant TTC' = "V3"),
@@ -206,7 +220,7 @@ server = function(input, output,session) {
                                                               buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                                               pageLength = 5,
                                                               lengthMenu = c(5, 6, 7)
-                                                            ))
+                                                            )) %>% formatCurrency("Montant TTC", currency = "  \U20AC  ", digits = 2, interval = 3, mark = " " )
                                           }
   )
   
@@ -237,16 +251,54 @@ server = function(input, output,session) {
   },height = 'auto',width = 'auto'
   )
   
-  output$MyDataCod.Rayons <- DT::renderDataTable(
-    {
-      
-      
-      
-    }
-  )
+  # output$TabMod2Paiement <- DT::renderDataTable(
+  #   {
+  #     TabMod2Paiement <- read.csv2("Rapports_Mode_de_paiement.RData")
+  #      TabMod2Paiement <- TabMod2Paiement[,-1]
+  # 
+  # } )
+  
+  output$TabMod2Paiement <- renderRHandsontable( {
+    attach(TabMod2Paiement)
+    TabMod2Paiement <- read_delim("Rapports_Mode_de_paiement.RData", delim = ";",
+                                  escape_double = FALSE, quote = '"',
+                                  locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", 
+                                  comment = "//", trim_ws = TRUE) 
+    
+    
+    TabMod2Paiement$Mont.Total <- as.numeric(TabMod2Paiement$Mont.Total)
+    TabMod2Paiement$T.Règlement <- as.integer(TabMod2Paiement$T.Règlement)
+    rhandsontable(TabMod2Paiement)
+    
+  })
+  
+  output$tabDataPay <- DT::renderDataTable(filter='none', rownames = F, editable = F, selection = 'none', {
+    
+    #  tabDataPay <- read.csv2(input$dataPay$datapath, )
+    tabDataPay <- read_delim(input$dataPay$datapath, delim = ";",
+                             escape_double = FALSE, quote = '"',
+                             locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null",
+                             comment = "//", trim_ws = TRUE)
+    
+  })
+  
   # =========================================================================== =
   ## Preview ----
   # =========================================================================== =
+  
+  observeEvent(input$TabMod2Paiement, {
+    
+    saveRDS(hot_to_r(input$TabMod2Paiement), file = "Rapports_Mode_de_paiement.rds")
+    # write.csv2(hot_to_r(input$TabMod2Paiement), file = "Rapports_Mode_de_paiement.csv", row.names = F)
+    
+    # sendSweetAlert(
+    #   session = session,
+    #   title = "Le fichier a bien été sauvegarder !",
+    #   text = "Les informations sont disponibles",
+    #   type = "success"
+    # )
+  }
+  )
   observeEvent(input$UploadFile, {
     updateTabItems(session,"tabs",selected= "tab_readData")
   })
@@ -262,15 +314,18 @@ server = function(input, output,session) {
     
     req(input$dataCod.Rayons)
     
-    dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath)
+    dataCod.Rayons <- read_delim(input$dataCod.Rayons$datapath, delim = ";",
+                                 escape_double = FALSE, quote = '"',
+                                 locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", 
+                                 comment = "//", trim_ws = TRUE) 
     dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
-    if (file.exists("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.rds"))
+    if (file.exists("dataFamilles.rds"))
     {
-      dataFamilles = readRDS(file = "dataFamilles.rds")
-      #dataFamilles <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataFamilles.csv", header = T, sep = ";", quote = '"', dec = ".")
-      dataFamilles <- read.csv2(input$dataFamilles$datapath)
-      dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
-      MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
+      dataFamilles <- readRDS(file = "dataFamilles.rds")
+      dataFamilles <- read.table("dataFamilles.csv", header = T, sep = ";", quote = '"', dec = ".")
+      dataFamilles = subset(dataFamilles, select = -c(X) )
+      dataFamilles<- dataFamilles[,c('Famille', 'Désignation.Famille')]
+      MyData$data$Famille <- as.numeric(as.character(MyData$data$Famille))
       colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
       total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
       total$Famille <- as.factor(total$Famille)
@@ -285,7 +340,7 @@ server = function(input, output,session) {
       MyData$data <- total
     }
     saveRDS(dataCod.Rayons, file = "dataCodeRayons.rds")
-    #write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
+    write.csv2(dataCod.Rayons, file = "dataCodeRayons.csv")
     
     sendSweetAlert(
       session  =  session , 
@@ -299,12 +354,15 @@ server = function(input, output,session) {
     
     req(input$dataFamilles)
     
-    dataFamilles <- read.csv2(input$dataFamilles$datapath)
+    dataFamilles <- read_delim(input$dataFamilles$datapath, delim = ";",
+                               escape_double = FALSE, quote = '"',
+                               locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", 
+                               comment = "//", trim_ws = TRUE)
     dataFamilles<- dataFamilles[,c('Code', 'Désignation')]
     if (file.exists("dataCodeRayons.rds"))
-    { 
+    {    
       dataCod.Rayons <- readRDS(file = "dataCodeRayons.rds")
-      #dataCod.Rayons <- read.table("~/R/ProjetCaisse/ProjetCaisse/dash/dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
+      dataCod.Rayons <- read.table("dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
       dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
       colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
       MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
@@ -315,8 +373,7 @@ server = function(input, output,session) {
       MyData$data <- total   
       
       saveRDS(dataFamilles, file = "dataFamilles.rds")
-      #write.csv2(dataFamilles, file = "dataFamilles.csv")
-      
+      write.csv2(dataFamilles, file = "dataFamilles.csv")
       sendSweetAlert(
         session  =  session ,
         title  =  "Succes !!" ,
@@ -342,10 +399,10 @@ server = function(input, output,session) {
       MyData$data <- read_delim(input$dataFile$datapath,
                                 ";", escape_double = FALSE,
                                 col_types = cols(
-                                  Date = col_date(format = "%Y-%m-%d"), 
-                                  Heure = col_time(format = ""),
-                                  Code = col_factor(),
-                                  Designation = col_character(),
+                                  `Date` = col_date(format = "%Y-%m-%d"), 
+                                  `Heure` = col_time(format = ""),
+                                  `Code` = col_factor(),
+                                  `Désignation` = col_character(),
                                   `Qte` = col_number(),
                                   # `Ts %` = col_factor(levels = c()),
                                   Mont.Total = col_number()),
@@ -355,13 +412,17 @@ server = function(input, output,session) {
       )
       
       MyData$data <- MyData$data[,-3,]
+      # MyData$data <- MyData$data[order("Date", "Heure")]
+      # dataFile <- arrange(dataFile, desc("Date", "Heure"))
       MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
       
       # Merge avec le fichier des codes articles si il existe dans le répertoire courant
       if (file.exists("dataCodeRayons.rds"))
       { 
         print("file dataCodeRayons exist")
-        dataCod.Rayons <- readRDS(file = "dataCodeRayons.csv") 
+        # dataCod.Rayons <- read.csv2("dataCodeRayons.csv")
+        # dataCod.Rayons = subset(dataCod.Rayons, select = -c(X) )
+        dataCod.Rayons <- readRDS(file = "dataCodeRayons.rds")
         
         MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
         dataCod.Rayons$Code <- as.numeric(as.character(dataCod.Rayons$Code))
@@ -375,20 +436,32 @@ server = function(input, output,session) {
       if (file.exists("dataFamilles.rds"))
       {
         print("file dataFamilles exist")
-        dataFamilles <- readRDS(file = "dataFamilles.rds")
+        dataFamilles <- read.csv2("dataFamilles.csv")
         MyData$data$Famille <- as.numeric(as.character(MyData$data$Famille))
         print(colnames( MyData$data))
         dataFamilles$Famille <- as.numeric(as.character(dataFamilles$Famille))
-        
+        # dataFamilles = subset(dataFamilles, select = -c(X) )
         thecolname  = colnames( dataFamilles)[-1]
         
         total <- merge(MyData$data,dataFamilles,by="Famille",all = TRUE)
         total$Famille <- as.factor(total$Famille)
         MyData$data <- total
-        updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c(thecolname)] ) )
+        
+        myu <- na.omit(unique( MyData$data[c('Désignation.Famille')] ))
+        colnames(myu) <- c('thecolname')
+        myu <- myu[order(myu$thecolname),]
+        print(myu)
+        updateSelectizeInput(session, 'SelectFamilles', choices = myu )
+        # updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c(thecolname)] ) )
       }
+      # updateSelectizeInput(session, 'SelectCode', choices = unique( MyData$data[c("Code")] ) )
+      myu <- na.omit(unique( MyData$data[c("Code")] ))
+      colnames(myu) <- c('Code')
+      myu <- myu[order(myu$Code),]
+      print(myu)
+      updateSelectizeInput(session, 'SelectCode', choices = myu )
       
-      updateSelectizeInput(session, 'SelectCode', choices = unique( MyData$data[c("Code")] ) )
+      # updateSelectizeInput(session, 'SelectTVA', choices = unique( MyData$data[c("Ts %")] ) )
       myu <- na.omit(unique( MyData$data[c("Ts %")] ))
       colnames(myu) <- c('TS')
       myu <- myu[order(myu$TS),]
@@ -420,12 +493,15 @@ server = function(input, output,session) {
   
   observeEvent(input$saveRBtn, {
     
-    dataCod.Rayons <- read.csv2(input$dataCod.Rayons$datapath) 
+    dataCod.Rayons <- read_delim(input$dataCod.Rayons$datapath, delim = ";",
+                                 escape_double = FALSE, quote = '"',
+                                 locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", 
+                                 comment = "//", trim_ws = TRUE) 
     dataCod.Rayons <- dataCod.Rayons[,c(-6:-53)]
     dataCod.Rayons <- dataCod.Rayons[,c(-2:-4)]
-    saveRDS(dataCod.Rayons, file = "dataCodeRayons.rds")
-    #write.csv2(dataCod.Rayons, "dataCodeRayons.csv")
-    
+    saveRDS(dataCod.Rayons, file = "dataCod.Rayons.rds"
+            # write.csv2(dataCod.Rayons, "dataCodeRayons.csv"
+    )
     
     sendSweetAlert(
       session = session,
@@ -433,18 +509,21 @@ server = function(input, output,session) {
       text = "Les informations sont disponibles",
       type = "success"
     )
-   }
+  }
   )
   
   observeEvent(input$saveFBtn, {
     
-    dataFamilles <- read.csv2(input$dataFamilles$datapath)
+    dataFamilles <- read_delim(input$dataFamilles$datapath, delim = ";",
+                               escape_double = FALSE, quote = '"',
+                               locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null",
+                               comment = "//", trim_ws = TRUE)
     dataFamilles <- dataFamilles[,c(-4:-14)]
     dataFamilles <- dataFamilles[,-3]
     dataFamilles <- dataFamilles[,c('Code', 'Désignation')]
     colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
     saveRDS(dataFamilles, file = "dataFamilles.rds")
-    #write.csv2(dataFamilles, "dataFamilles.csv")
+    # write.csv2(dataFamilles, "dataFamilles.csv")
     
     sendSweetAlert(
       session = session,
@@ -452,6 +531,6 @@ server = function(input, output,session) {
       text = "Les informations sont disponibles",
       type = "success"
     )
-   }
+  }
   )
 }
