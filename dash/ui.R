@@ -141,8 +141,8 @@ ui <- dashboardPage(
                 radioButtons(
                   inputId = "marque",
                   label = "Marque",
-                  choices = c(Aucun = "0","Marques" = '1',"EXA" = "2"),
-                  selected = "1", inline=T
+                  choices = c(Aucun = '0',"Marques" = '1',"EXA" = '2'),
+                  selected = '1', inline=T
                 )))),
         fluidRow(
           column(
