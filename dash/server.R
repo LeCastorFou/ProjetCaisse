@@ -15,8 +15,7 @@ server = function(input, output,session) {
   TabMod2P <- reactiveValues()
   tabDataPay <- reactiveValues()
  
- # if(input$marque) {  
-   # marque = 1 
+ # if(input$marque$Marques == "1") {
     
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
                                             colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
@@ -61,8 +60,6 @@ server = function(input, output,session) {
                                            # Gerer la selection des codes familles
                                            if(is.null(input$SelectFamilles)){df_expose = df_expose}
                                            else{
-                                             print(input$SelectFamilles)
-                                             print(df_expose[c("Désignation.Famille")])
                                              df_expose = df_expose[df_expose$Désignation.Famille %in% input$SelectFamilles, ]
                                            } 
                                            if (file.exists("dataCodeRayons.rds"))
@@ -164,8 +161,7 @@ server = function(input, output,session) {
                                             
                                             df_expose = aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
                                                                   by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
-                                            
-                                            print(df_expose) 
+                                          
                                             df <- datatable(df_expose, rownames = F,
                                                             colnames = c('Montant soumis' = 'V1', 'Montant TVA' = 'V2', 'Montant Total' = 'V3'),
                                                             extension = "Buttons",
@@ -202,7 +198,7 @@ server = function(input, output,session) {
                                             df_expose <- aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
                                                                    by=list('Ts %'=df_expose$'Ts %'), FUN=sum)
                                             
-                                            print(df_expose)
+                                        
                                             df <- datatable(df_expose, rownames = F,
                                                             colnames = c('Taux de TVA' = 'Ts %', 'Montant TVA' = 'V2', 'Montant HT'= 'V1', 'Montant TTC' = "V3"),
                                                             extension = "Buttons",
@@ -387,8 +383,7 @@ server = function(input, output,session) {
       )
       
       MyData$data <- MyData$data[,-3,]
-      # MyData$data <- MyData$data[order("Date", "Heure")]
-      # dataFile <- arrange(dataFile, desc("Date", "Heure"))
+
       MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
       
       # Merge avec le fichier des codes articles si il existe dans le répertoire courant
@@ -410,9 +405,8 @@ server = function(input, output,session) {
       if (file.exists("dataFamilles.rds"))
       {
         print("file dataFamilles exist")
-        dataFamilles <- read.csv2("dataFamilles.csv")
+        dataFamilles <- readRDS("dataFamilles.rds")
         MyData$data$Famille <- as.numeric(as.character(MyData$data$Famille))
-        print(colnames( MyData$data))
         dataFamilles$Famille <- as.numeric(as.character(dataFamilles$Famille))
         # dataFamilles = subset(dataFamilles, select = -c(X) )
         thecolname  = colnames( dataFamilles)[-1]
@@ -428,18 +422,18 @@ server = function(input, output,session) {
         updateSelectizeInput(session, 'SelectFamilles', choices = myu )
         # updateSelectInput(session, 'SelectFamilles', choices = unique( MyData$data[c(thecolname)] ) )
       }
+      MyData$data <- MyData$data[order( MyData$data$Heure),]
+      MyData$data <- MyData$data[order( MyData$data$Date),]
       # updateSelectizeInput(session, 'SelectCode', choices = unique( MyData$data[c("Code")] ) )
       myu <- na.omit(unique( MyData$data[c("Code")] ))
       colnames(myu) <- c('Code')
       myu <- myu[order(myu$Code),]
-      print(myu)
       updateSelectizeInput(session, 'SelectCode', choices = myu )
       
       # updateSelectizeInput(session, 'SelectTVA', choices = unique( MyData$data[c("Ts %")] ) )
       myu <- na.omit(unique( MyData$data[c("Ts %")] ))
       colnames(myu) <- c('TS')
       myu <- myu[order(myu$TS),]
-      print(myu)
       updateSelectizeInput(session, 'SelectTVA', choices = myu )
       
       MyDataSum$data <- MyData$data[,c('Prix','Mont.TVA')]
@@ -504,44 +498,44 @@ server = function(input, output,session) {
     )
    }
   )
- # }
-  # else {
-  #   output$tab_preview <- renderDataTable(filter='none',{
-  #     
-  #     
-  #     req(input$dataFile)
-  #     
-  #     df <- read.csv2(input$dataFile$datapath,
-  #                     header = as.logical(input$header),
-  #                     sep = input$sep,
-  #                     quote = input$quote,
-  #                     nrows=5
-  #     )
-  #   },  options = list(scrollX = TRUE , dom = 't'))
-  #   
-  #   output$dataFile <- renderDataTable(filter='top',{
-  #     req(input$dataFile)
-  #     dataFile <- read_delim(input$dataFile$datapath,                      
-  #                            ";", quote = "\\\"", escape_double = FALSE,
-  #                            locale = locale(date_names = "fr", 
-  #                                            decimal_mark = ",", 
-  #                                            encoding = "ISO-8859-1"), 
-  #                            trim_ws = TRUE)
-  #     
-  #     dataFile %>% filter('Date' >= input$dateRange[1] & 'Date' <= input$dateRange[2])                       
-  #     
-  #   },  options = list(scrollX = TRUE , dom = 't')
-  #   )
-  # }
-  # observe(input$tab_preview, {
-  #   
-  #   if(!is.null(input$dataFile$datapath)){
-  #     data$table = read.csv(input$dataFile$datapath,
-  #                           header = as.logical(input$header),
-  #                           sep = input$sep,
-  #                           quote = input$quote)
-  #     updateTabItems(session, "tabs", selected = "tab_preview")
-  #   }
-  # })
+ }
+# else {
+   # output$tab_preview <- renderDataTable(filter='none',{
+   # 
+   # 
+   #   req(input$dataFile)
+   # 
+   #   df <- read.csv2(input$dataFile$datapath,
+   #                   header = as.logical(input$header),
+   #                   sep = input$sep,
+   #                   quote = input$quote,
+   #                   nrows=5
+   #   )
+   # },  options = list(scrollX = TRUE , dom = 't'))
+   # 
+   # output$dataFile <- renderDataTable(filter='top',{
+   #   req(input$dataFile)
+   #   dataFile <- read_delim(input$dataFile$datapath,
+   #                          ";", quote = "\\\"", escape_double = FALSE,
+   #                          locale = locale(date_names = "fr",
+   #                                          decimal_mark = ",",
+   #                                          encoding = "ISO-8859-1"),
+   #                          trim_ws = TRUE)
+   # 
+   #   dataFile %>% filter('Date' >= input$dateRange[1] & 'Date' <= input$dateRange[2])
+   # 
+   # },  options = list(scrollX = TRUE , dom = 't')
+   # )
+# }
+ # observe(input$tab_preview, {
+ # 
+ #   if(!is.null(input$dataFile$datapath)){
+ #     data$table = read.csv(input$dataFile$datapath,
+ #                           header = as.logical(input$header),
+ #                           sep = input$sep,
+ #                           quote = input$quote)
+ #     updateTabItems(session, "tabs", selected = "tab_preview")
+ #   }
+ # })
     
-}
+#}
