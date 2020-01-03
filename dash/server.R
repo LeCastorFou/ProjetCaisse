@@ -294,7 +294,7 @@ server = function(input, output,session) {
     if (file.exists("dataFamilles.rds"))
     {
       dataFamilles <- readRDS(file = "dataFamilles.rds")
-      dataFamilles <- read.table("dataFamilles.csv", header = T, sep = ";", quote = '"', dec = ".")
+     # dataFamilles <- read.table("dataFamilles.csv", header = T, sep = ";", quote = '"', dec = ".")
       dataFamilles = subset(dataFamilles, select = -c(X) )
       dataFamilles<- dataFamilles[,c('Famille', 'Désignation.Famille')]
       MyData$data$Famille <- as.numeric(as.character(MyData$data$Famille))
@@ -333,7 +333,7 @@ server = function(input, output,session) {
     if (file.exists("dataCodeRayons.rds"))
     {    
       dataCod.Rayons <- readRDS(file = "dataCodeRayons.rds")
-      dataCod.Rayons <- read.table("dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
+     # dataCod.Rayons <- read.table("dataCodeRayons.csv",header = T, sep = ";", quote = '"', dec = ".")
       dataCod.Rayons <- dataCod.Rayons[,c('Code', 'Famille')]
       colnames(dataFamilles) <- c("Famille", "Désignation.Famille")
       MyData$data$Code <- as.numeric(as.character(MyData$data$Code))
