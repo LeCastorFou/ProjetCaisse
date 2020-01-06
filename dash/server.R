@@ -14,12 +14,9 @@ server = function(input, output,session) {
   TabMod2Paiement <- reactiveValues()
   TabMod2P <- reactiveValues()
   tabDataPay <- reactiveValues()
-  
-  chooseMark <- reactive({    
-  if(input$marque=='1') {
     
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
-                                            colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
+                                           # colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'), 
                                             {
                                               options(
                                                 DT.options = list(
@@ -30,7 +27,7 @@ server = function(input, output,session) {
                                                 )
                                               )
                                               req(input$dataFile) 
-                                              
+                                    if(input$marque=='1') {     
                                               dataFile <- read_delim(input$dataFile$datapath,
                                                                      ";", escape_double = FALSE,
                                                                      col_types = cols(
@@ -38,13 +35,33 @@ server = function(input, output,session) {
                                                                        Heure = col_time(""),
                                                                        Code = col_factor(),
                                                                        Designation = col_character(),
-                                                                       `Qte` = col_number(),
+                                                                       `Ts %` = col_number(),
                                                                        Mont.Total = col_number()),
                                                                      locale = locale(decimal_mark = ",", 
                                                                                      encoding = "ISO-8859-1"), na = "null", 
                                                                      comment = "//", trim_ws = TRUE)
                                               
-                                              dataFile <<- dataFile[,-3] 
+                                              dataFile <- dataFile[,-3] 
+                                    }
+                                              else if(input$marque=='2') {
+                                                
+                                                df <- readxl::read_excel(input$dataFile$datapath,
+                                                                # header = as.logical(input$header),
+                                                                # sep = input$sep,
+                                                                # quote = input$quote,
+                                                                # nrows=5
+                                                )
+                                              }
+                                              
+                                              else if(input$marque=='0') {
+                                                
+                                                df <- read.csv2(input$dataFile$datapath,
+                                                                       header = as.logical(input$header),
+                                                                       sep = input$sep,
+                                                                       quote = input$quote,
+                                                                       nrows=5
+                                              )  
+                                            }
                                               
                                             },  options = list(pageLength = 6)
   )
@@ -499,44 +516,10 @@ server = function(input, output,session) {
     )
    }
   )
+  observeEvent(input$SelectFamilles, {
+    df <- MyData$data
+    df = df[df$Désignation.Famille %in% input$SelectFamilles, ]
+  updateSelectizeInput(session, 'SelectCode', choices = unique(df[c('Code')] ) )
+  })
  }
- else {
-   output$tab_preview <- renderDataTable(filter='none',{
-
-
-     req(input$dataFile)
-
-     df <- read.csv2(input$dataFile$datapath,
-                     header = as.logical(input$header),
-                     sep = input$sep,
-                     quote = input$quote,
-                     nrows=5
-     )
-   },  options = list(scrollX = TRUE , dom = 't'))
-
-   output$dataFile <- renderDataTable(filter='top',{
-     req(input$dataFile)
-     dataFile <- read_delim(input$dataFile$datapath,
-                            ";", quote = "\\\"", escape_double = FALSE,
-                            locale = locale(date_names = "fr",
-                                            decimal_mark = ",",
-                                            encoding = "ISO-8859-1"),
-                            trim_ws = TRUE)
-
-     dataFile %>% filter('Date' >= input$dateRange[1] & 'Date' <= input$dateRange[2])
-
-   },  options = list(scrollX = TRUE , dom = 't')
-   )
- }
- observe(input$tab_preview, {
-
-   if(!is.null(input$dataFile$datapath)){
-     data$table = read.csv(input$dataFile$datapath,
-                           header = as.logical(input$header),
-                           sep = input$sep,
-                           quote = input$quote)
-     updateTabItems(session, "tabs", selected = "tab_preview")
-   }
- })
-  })  
-}
+ 
