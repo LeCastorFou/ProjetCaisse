@@ -46,12 +46,7 @@ server = function(input, output,session) {
                                               else if(input$marque=='2') {
                                                 
                                                 df <- readxl::read_excel(input$dataFile$datapath,
-                                                                # header = as.logical(input$header),
-                                                                # sep = input$sep,
-                                                                # quote = input$quote,
-                                                                # nrows=5
-                                                )
-                                              }
+                                                ) }
                                               
                                               else if(input$marque=='0') {
                                                 
@@ -60,8 +55,7 @@ server = function(input, output,session) {
                                                                        sep = input$sep,
                                                                        quote = input$quote,
                                                                        nrows=5
-                                              )  
-                                            }
+                                              ) }
                                               
                                             },  options = list(pageLength = 6)
   )
@@ -382,8 +376,16 @@ server = function(input, output,session) {
   })
   
   observeEvent(input$visualisation, {
-    
-    if(!is.null(input$dataFile)){
+   
+    if(input$marque=='0' | input$marque=='2') {  
+      sendSweetAlert(
+        session  =  session , 
+        title  =  "Attention !!" , 
+        text  =  "Le programme ne permet pas l'affichage de ses informations ..." , 
+        type  =  "erreur" 
+      ) }
+     
+    else if(!is.null(input$dataFile)){
       
       MyData$data <- read_delim(input$dataFile$datapath,
                                 ";", escape_double = FALSE,
