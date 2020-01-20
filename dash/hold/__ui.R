@@ -1,7 +1,7 @@
 
 ## BIBLIOTHEQUE ----
 # ####################### #
-
+#library(rsconnect)
 library(shiny)
 library(shinythemes)
 library(shinydashboard)
@@ -13,6 +13,9 @@ library(DT)
 library(readr)
 library(data.table)
 library(shinyWidgets)
+#library(tidyverse)
+library(devtools)
+library(rhandsontable)
 
 # ####################### #
 ## UI ----
@@ -23,8 +26,8 @@ ui <- dashboardPage(
   dashboardHeader(title = "ELAN INFO", titleWidth = 300),
   dashboardSidebar(collapsed = TRUE,
                    sidebarMenu(id = "tabs",
-                               menuItem("Dashboard", tabName = "tab_dashboard", icon = icon("dashboard")),
                                menuItem("Lecture des informations ", tabName = "tab_readData", icon = icon("bar-chart-o")),
+                               menuItem("Dashboard", tabName = "tab_dashboard", icon = icon("dashboard")),
                                menuItem("Visualiser des informations", tabName = "tab_visualization", icon = icon("eye")),
                                menuItem("Gestion des familles", tabName = "tab_familles", icon = icon("fas fa-cog"))
                    )
@@ -42,22 +45,60 @@ ui <- dashboardPage(
                   width = 3, offset = 1,
                   tags$br(),
                   dateRangeInput("DateRange",label = "Selectionner une plage de date :", start = now(), separator = " / "),
-                  selectizeInput('SelectCode', 'Selectionner Code Article', choices = " ", multiple = TRUE)
+                  selectizeInput('SelectCode', 'Selectionner Code Article', choices = " ", multiple = TRUE),
+                  (actionButton(inputId = "Dashboard", label = "dashboard", icon = icon("dashboard")))
                 ),
                 column(
                   width = 3, offset = 1,
                   tags$br(),
                   selectizeInput('SelectFamilles', 'Selectionner les familles', choices = " ", multiple = TRUE),
                   selectizeInput('SelectTVA', 'Selectionner la TVA', choices = " ", multiple = TRUE)
+                  
                 )
               ),
               DTOutput("dataFile")
       ),
-            tabItem(
+      tabItem(
         tabName = "tab_dashboard", 
         h2("Tableau de bord"),
-        (actionButton(inputId = "UploadFile", label = "Charger des informations", icon = icon("play"))),
-        shinythemes::themeSelector()
+        fluidRow( 
+          column(width = 12, offset = -1,
+                 (actionButton(inputId = "UploadFile", label = "Charger des informations", icon = icon("play"))),
+                 (actionButton(inputId = "ModFile", label = "Modifier les filtres", icon = icon("play"))),
+                 shinythemes::themeSelector(),
+                 # tags$br(), -- ne pas toucher
+                 box(title = "Synthèse des ventes par famille",
+                     fluidRow(
+                       column(width = 11, # offset = 1,
+                              DTOutput("MyDataBis"),
+                              tags$br()
+                       ))
+                 ),
+                 box(# title = fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Charger le apport des modes de paiement "),
+                   # column(width = 12, offset= -1,
+                   fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Charger le rapport des modes de paiement "
+                   ),
+                   fluidRow(
+                     column(width = 12, offset = -1,
+                            tabsetPanel(
+                              tabPanel("Mode de paiement", rHandsontableOutput("TabMod2Paiement")),
+                              tabPanel("Table téléchargée", dataTableOutput("tabDataPay"))
+                            )
+                     )
+                   ),
+                   fluidRow(
+                     title = "Synthèse des ventes par TVA",
+                     column(width = 12, # offset = 1,
+                            tags$br(),
+                            DTOutput("MyDataTVA")
+                     ),
+                     fluidRow(
+                       column(width = 12, # offset = 1,
+                              tags$br(),
+                              plotOutput("MyDataBisGraph")
+                       ))
+                   ))
+          ))
       ),
       tabItem(
         tabName = "tab_readData",
@@ -100,25 +141,25 @@ ui <- dashboardPage(
                 radioButtons(
                   inputId = "marque",
                   label = "Marque",
-                  choices = c(Aucun = "","Marques" = '"',"EXA" = "'"),
-                  selected = TRUE, inline=T
+                  choices = c(Aucun = '0',"Marques" = '1',"EXA" = '2'),
+                  selected = '1', inline=T
                 )))),
-              fluidRow(
-                column(
-                  width = 3, offset = 1,
-                  fileInput("dataFile",label = NULL,buttonLabel = "Navigateur...", placeholder = "Selectionner un fichier"),
-                column( 
-                  width = 2, offset = 3,
-                  (actionButton(inputId = "visualisation", label = "visualiser", icon = icon("play")))),
-                 #  tags$br(),
-                  h3(""))),
-              fluidRow(
-                column(
-                  width = 12, offset = -1,
-                  DTOutput("tab_preview")
-                )
-              )  
-        ),
+        fluidRow(
+          column(
+            width = 3, offset = 1,
+            fileInput("dataFile",label = NULL,buttonLabel = "Navigateur...", placeholder = "Selectionner un fichier"),
+            column( 
+              width = 2, offset = 3,
+              (actionButton(inputId = "visualisation", label = "visualiser", icon = icon("play")))),
+            #  tags$br(),
+            h3(""))),
+        fluidRow(
+          column(
+            width = 12, offset = -1,
+            DTOutput("tab_preview")
+          )
+        )  
+      ),
       tabItem(
         tabName = "tab_familles",
         fluidRow(
@@ -127,26 +168,28 @@ ui <- dashboardPage(
             offset = -1,
             h3("Gestion des familles")),
           column( 
-            width = 3, 
+            width = 4, 
             offset = 1,
             fileInput("dataFamilles",label = "Familles",buttonLabel = "Navigateur...", placeholder = "Selectionner un fichier"),
-            actionButton(inputId = "mergingF", label = "utiliser", icon = icon("upload"))   
-            ),
+            actionButton(inputId = "mergingF", label = "Charger la table", icon = icon("upload")), 
+            actionButton(inputId = "saveFBtn", label = "Sauvegarder", icon = icon("wrench"))
+          ),
           column(
-            width = 3, 
+            width = 5, 
             offset = 1,
             fileInput("dataCod.Rayons",label = "Codes Rayons",buttonLabel = "Navigateur...", placeholder = "Selectionner un fichier"),
-            actionButton(inputId = "merging", label = "Sauvegarder", icon = icon("upload"))  
-         ),
-         fluidRow(
-           column(
-             width = 9, offset = 1,
-             tabsetPanel(
-               tabPanel("Table des familles", DT::dataTableOutput("dataFamilles") ),
-               tabPanel("Table des rayons", DT::dataTableOutput("dataCod.Rayons") )
-
+            actionButton(inputId = "merging", label = "Charger la table", icon = icon("upload")),
+            actionButton(inputId = "saveRBtn", label = "Sauvegarder", icon = icon("wrench"))
+          ),
+          fluidRow(
+            column(
+              width = 9, offset = 1,
+              tabsetPanel(
+                tabPanel("Table des familles", DT::dataTableOutput("dataFamilles") ),
+                tabPanel("Table des rayons", DT::dataTableOutput("dataCod.Rayons") )
+                
+              )
             )
-           )
           )
         )
       )

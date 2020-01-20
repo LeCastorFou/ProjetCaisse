@@ -1,4 +1,3 @@
-
 ## BIBLIOTHEQUE ----
 # ####################### #
 #library(rsconnect)
@@ -16,6 +15,10 @@ library(shinyWidgets)
 #library(tidyverse)
 library(devtools)
 library(rhandsontable)
+library(markdown)
+library(rmarkdown)
+library(tinytex)
+library(kableExtra)
 
 # ####################### #
 ## UI ----
@@ -35,11 +38,15 @@ ui <- dashboardPage(
   body <- dashboardBody(
     tabItems(
       tabItem(tabName = "tab_visualization",
-              
               fluidRow(
                 column(
                   width = 2, offset = -1,
-                  h3("Filtre des ventes"), DTOutput("dataFileSum")
+                  h4("Filtre des ventes"), DTOutput("dataFileSum"),
+              fluidRow(  
+                column( 
+                  width = 2, offset = -1, 
+                DTOutput(("dataNbClients"))  
+                ))
                 ),
                 column(
                   width = 3, offset = 1,
@@ -63,19 +70,23 @@ ui <- dashboardPage(
         h2("Tableau de bord"),
         fluidRow( 
           column(width = 12, offset = -1,
+                 DTOutput("dataFileSumBis"),
                  (actionButton(inputId = "UploadFile", label = "Charger des informations", icon = icon("play"))),
                  (actionButton(inputId = "ModFile", label = "Modifier les filtres", icon = icon("play"))),
-                 shinythemes::themeSelector(),
+                 downloadButton("report", "Générer un rapport"),
                  # tags$br(), -- ne pas toucher
-                 box(title = "Synthèse des ventes par famille",
+                 box(#title = "Synthèse des ventes par famille",
                      fluidRow(
-                       column(width = 11, # offset = 1,
+                       column(width = 12,  offset = -1,
                               DTOutput("MyDataBis"),
-                              tags$br()
-                       ))
-                 ),
-                 box(# title = fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Charger le apport des modes de paiement "),
-                   # column(width = 12, offset= -1,
+                              tags$br(),
+                       ),
+                       tags$br(),
+                     fluidRow(
+                       column(width = 12, offset = -1,
+                              plotOutput("MyDataGraph2"))
+                 ))),
+                 box(
                    fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Charger le rapport des modes de paiement "
                    ),
                    fluidRow(
@@ -87,14 +98,12 @@ ui <- dashboardPage(
                      )
                    ),
                    fluidRow(
-                     title = "Synthèse des ventes par TVA",
+                    # title = "Synthèse des ventes par TVA",
                      column(width = 12, # offset = 1,
-                            tags$br(),
                             DTOutput("MyDataTVA")
                      ),
                      fluidRow(
                        column(width = 12, # offset = 1,
-                              tags$br(),
                               plotOutput("MyDataBisGraph")
                        ))
                    ))
@@ -132,6 +141,7 @@ ui <- dashboardPage(
             )
         ),
         box(title = "Informations sur le TPV",
+            shinythemes::themeSelector(),
             status = "warning",
             fluidRow(
               column(width = 5, offset = 1),
