@@ -18,7 +18,6 @@ library(rhandsontable)
 library(markdown)
 library(rmarkdown)
 library(tinytex)
-library(kableExtra)
 
 # ####################### #
 ## UI ----
@@ -42,11 +41,11 @@ ui <- dashboardPage(
                 column(
                   width = 2, offset = -1,
                   h4("Filtre des ventes"), DTOutput("dataFileSum"),
-              fluidRow(  
-                column( 
-                  width = 2, offset = -1, 
-                DTOutput(("dataNbClients"))  
-                ))
+                  fluidRow(  
+                    column( 
+                      width = 2, offset = -1, 
+                      DTOutput(("dataNbClients"))  
+                    ))
                 ),
                 column(
                   width = 3, offset = 1,
@@ -76,16 +75,16 @@ ui <- dashboardPage(
                  downloadButton("report", "Générer un rapport"),
                  # tags$br(), -- ne pas toucher
                  box(#title = "Synthèse des ventes par famille",
-                     fluidRow(
-                       column(width = 12,  offset = -1,
-                              DTOutput("MyDataBis"),
-                              tags$br(),
-                       ),
-                       tags$br(),
+                   fluidRow(
+                     column(width = 12,  offset = -1,
+                            DTOutput("MyDataBis"),
+                            tags$br()
+                     ),
+                     tags$br(),
                      fluidRow(
                        column(width = 12, offset = -1,
                               plotOutput("MyDataGraph2"))
-                 ))),
+                     ))),
                  box(
                    fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Charger le rapport des modes de paiement "
                    ),
@@ -98,7 +97,7 @@ ui <- dashboardPage(
                      )
                    ),
                    fluidRow(
-                    # title = "Synthèse des ventes par TVA",
+                     # title = "Synthèse des ventes par TVA",
                      column(width = 12, # offset = 1,
                             DTOutput("MyDataTVA")
                      ),
