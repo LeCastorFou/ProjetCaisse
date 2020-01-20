@@ -18,7 +18,8 @@ library(rhandsontable)
 library(markdown)
 library(rmarkdown)
 library(tinytex)
-
+library(knitr)
+library(kableExtra)
 # ####################### #
 ## UI ----
 # ####################### # 
