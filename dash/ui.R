@@ -79,7 +79,7 @@ ui <- dashboardPage(
                    fluidRow(
                      column(width = 12,  offset = -1,
                             DTOutput("MyDataBis"),
-                            tags$br(),
+                            tags$br()
                      ),
                      tags$br(),
                      fluidRow(
