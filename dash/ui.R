@@ -18,8 +18,8 @@ library(rhandsontable)
 library(markdown)
 library(rmarkdown)
 library(tinytex)
-library(knitr)
 library(kableExtra)
+
 # ####################### #
 ## UI ----
 # ####################### # 
@@ -79,7 +79,7 @@ ui <- dashboardPage(
                    fluidRow(
                      column(width = 12,  offset = -1,
                             DTOutput("MyDataBis"),
-                            tags$br()
+                            tags$br(),
                      ),
                      tags$br(),
                      fluidRow(

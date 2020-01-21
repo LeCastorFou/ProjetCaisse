@@ -120,10 +120,12 @@ server = function(input, output,session) {
                                               if(is.null(input$SelectFamilles)){df_expose = df_expose}
                                               else{df_expose = df_expose[df_expose$Désignation.Famille  %in% input$SelectFamilles, ]}
                                               
+                                              df_expose_rmark <- df_expose[,c('Mont.Total','Mont.TVA', 'Mont.Soumis')]
                                               df_expose <- df_expose[,c('Mont.Total','Mont.TVA')]
                                               df_expose <- data.frame(Sommes=colSums(df_expose))
+                                              df_expose_rmark <- data.frame(Sommes=colSums(df_expose_rmark))
                                               
-                                              df_expose_SumT <<- df_expose
+                                              df_expose_SumT <<- df_expose_rmark
                                               
                                               df <- datatable(df_expose,
                                                               selection = 'none',

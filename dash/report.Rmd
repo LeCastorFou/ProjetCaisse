@@ -1,6 +1,6 @@
 ---
 title: "Journal de synthèse"
-date: 
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 params:
   n: NA
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
 
 ```{r}
-rownames(df_expose_SumT)=c('Montant total', 'Montant de la TVA')
+rownames(df_expose_SumT)=c('Montant total', 'Montant de la TVA', 'Montant HT')
 kable(df_expose_SumT) %>%
 kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 20)
 ```
@@ -26,7 +26,7 @@ kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width
 
 ```{r}
 kable(df_expose_TabMod2Paiement) %>%
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 15)
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 15, position = "right")
 ```
 
 ```{r}
@@ -37,7 +37,7 @@ kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width
 
 ```{r}
 kable(df_expose_dataTVA)  %>% 
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 17)
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 17, position = "right")
 ```
 
 ```{r}
