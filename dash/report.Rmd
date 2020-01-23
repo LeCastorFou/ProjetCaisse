@@ -12,21 +12,21 @@ params:
   
   a: NA
   b: NA
+  c: NA
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
 
 ```{r}
-rownames(df_expose_SumT)=c('Montant total', 'Montant de la TVA', 'Montant HT')
-kable(df_expose_SumT) %>%
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 20)
+colnames(df_Date)=c('- Début de période', '-   Fin de période')
+kable(df_Date) %>%
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 15) 
 ```
-
 
 ```{r}
 kable(df_expose_TabMod2Paiement) %>%
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 15, position = "right")
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 15, position = "float_right")
 ```
 
 ```{r}
@@ -34,17 +34,29 @@ rownames(df_expose_NbClients)=c("Nombre de tickets")
 kable(df_expose_NbClients) %>% 
 kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 20)
 ```
+```{r}
+rownames(df_expose_NbClients)=c("")
+kable(df_expose_NbClients) %>% 
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 0.5)
+```
+```{r}
+rownames(df_expose_SumT)=c('Montant total', 'Montant de la TVA', 'Montant HT')
+kable(df_expose_SumT) %>%
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 17)
+```
 
 ```{r}
 kable(df_expose_dataTVA)  %>% 
 kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 17, position = "right")
 ```
-
+```{r}
+rownames(df_expose_NbClients)=c("")
+kable(df_expose_NbClients) %>% 
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 0.5)
+```
 ```{r}
  colnames(df_expose_dataFile)=c('Date', 'Heure', 'Réf.Doc', 'Famille', 'Code article','Désignation ', 'Qté', 'Taux de TVA','Prix', 'Montant soumis', 'TVA collectée', 'Montant Total')
 paged_table(df_expose_dataFile)
-# paged_table(head(df_expose_dataFile)) %>%
-# #head(df_expose_dataFile) %>% kable() %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"), font_size = 12)
 ```
 
 ```{r}

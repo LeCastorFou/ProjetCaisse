@@ -64,6 +64,8 @@ server = function(input, output,session) {
   output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none", ## caption = "Rapport des ventes",
                                          {
                                            df_expose = MyData$data %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
+                                           dataRange_rmark <<- input$DateRange[1] 
+                                           dataRangeF_rmark <<-  input$DateRange[2]
                                            # Gerer la selection des codes articles
                                            if(is.null(input$SelectCode)){df_expose = df_expose}
                                            else{df_expose = df_expose[df_expose$Code %in% input$SelectCode, ]}
@@ -152,7 +154,7 @@ server = function(input, output,session) {
       df_expose = df_expose
       df_expose <- data.frame(length(unique( df_expose[,c('Réf.Doc.')] )) )
       colnames(df_expose) = c("  ")
-      rownames(df_expose) = c('Nbr_de_tickets' )                               
+      rownames(df_expose) = c('Nbr_de_tickets' ) 
       df_expose_NbClients <<- df_expose
       df <- datatable(df_expose, filter = 'none', 
                       selection = 'none',
@@ -190,7 +192,10 @@ server = function(input, output,session) {
                                           {
                                             df_expose = MyData$data 
                                             df_expose <- df_expose %>% filter(Date >= input$DateRange[1] & Date <= input$DateRange[2])
-                                            
+                                            df_exposeDate <<- input$DateRange[1]
+                                            df_exposeDateF <<- input$DateRange[2]
+                                            df_Date <<- data.frame(df_exposeDate, df_exposeDateF)
+                                            colnames(df_Date)=c('Début', 'Fin')
                                             # Gerer la selection des codes articles
                                             if(is.null(input$SelectCode)){df_expose = df_expose}
                                             else{df_expose = df_expose[df_expose$Code %in% input$SelectCode, ]}
@@ -317,6 +322,7 @@ server = function(input, output,session) {
     
     colnames(df_expose)
     colnames(df_expose) = c('Désignation.Famille','Montant soumis' , 'Montant TVA', 'Montant.Total', 'Répartition des ventes' )
+    # formatPercentage(df_expose, 'ColPcent', digits = 2)
     
     ggplot_Graph2 <<- df_expose
     
@@ -601,7 +607,8 @@ server = function(input, output,session) {
       tempReport <- file.path(tempdir(""), "report.Rmd")
       file.copy("report.Rmd", tempReport, overwrite = TRUE)
       
-      params <- list(n = input$df_expose_dataFile, o = input$df_expose_SumT, p = input$df_expose_dataBis, q = input$df_expose_dataTVA, s = input$df_expose_NbClients, t = input$df_expose_TabMod2Paiement, a = input$ggplot_Graph2, b=input$ggplot_Graph)
+      params <- list(n = input$df_expose_dataFile, o = input$df_expose_SumT, p = input$df_expose_dataBis, q = input$df_expose_dataTVA, s = input$df_expose_NbClients, t = input$df_expose_TabMod2Paiement,
+                     a = input$ggplot_Graph2, b=input$ggplot_Graph,  c=input$ggplot_Graph, b = df_Date)
       
       rmarkdown::render(tempReport, output_file = file,
                         params = params,
