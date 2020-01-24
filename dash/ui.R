@@ -12,14 +12,15 @@ library(DT)
 library(readr)
 library(data.table)
 library(shinyWidgets)
-#library(tidyverse)
+library(shinythemes)
 library(devtools)
 library(rhandsontable)
 library(markdown)
 library(rmarkdown)
 library(tinytex)
 library(kableExtra)
-
+library(RColorBrewer)
+library(rhandsontable)
 # ####################### #
 ## UI ----
 # ####################### # 
@@ -98,6 +99,7 @@ ui <- dashboardPage(
                      )
                    ),
                    fluidRow(
+                     tags$br(),
                      # title = "Synthèse des ventes par TVA",
                      column(width = 12, # offset = 1,
                             DTOutput("MyDataTVA")

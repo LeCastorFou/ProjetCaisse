@@ -15,6 +15,7 @@ server = function(input, output,session) {
   TabMod2P <- reactiveValues()
   tabDataPay <- reactiveValues()
   MyDataNbClients <- reactiveValues()
+  values = reactiveValues()
   
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
                                             {
@@ -47,7 +48,7 @@ server = function(input, output,session) {
                                               else if(input$marque=='2') {
                                                 
                                                 df <- readxl::read_excel(input$dataFile$datapath,
-                                                ) }
+                                                )  }
                                               
                                               else if(input$marque=='0') {
                                                 
@@ -56,7 +57,18 @@ server = function(input, output,session) {
                                                                 sep = input$sep,
                                                                 quote = input$quote,
                                                                 nrows=5
-                                                ) }
+                                                ) 
+                                                df <- df[,-2:-4]
+                                                df <- select(df, 1, 2 ,6  )
+                                                # colname(df) <- list()
+                                                # boucle for sur la list (reactive value tout les nom de colonnes)
+                                                #if "nom " isin colname(df) :
+                                                # pass
+                                                #else
+                                                #  df[,"nom colonne"] <- NA
+                                                
+                                                #  View(df)
+                                              }
                                             },  options = list(pageLength = 6)
                                             
   )
@@ -98,7 +110,6 @@ server = function(input, output,session) {
                                                            extension = "Buttons",
                                                            selection = 'none',
                                                            filter='none',
-                                                           #  colnames = c('Taux de TVA' = 'Ts %', 'Code article' = 'Code'),
                                                            options = list(
                                                              autoWidth = TRUE,
                                                              dom = "lftiprB", 
@@ -284,17 +295,14 @@ server = function(input, output,session) {
     
     df_expose = aggregate(cbind(df_expose$Mont.Soumis,df_expose$Mont.TVA,df_expose$Mont.Total),
                           by=list(Désignation.Famille=df_expose$Désignation.Famille), FUN=sum)
-    df_expose$ColPcent <- df_expose$V3/sum(df_expose$V3/100) 
+    df_expose$ColPcent <- df_expose$V3/sum(df_expose$V3/100)
     
     colnames(df_expose)
     colnames(df_expose) = c('Désignation.Famille','Montant soumis' , 'Montant TVA', 'Montant.Total', 'Répartition des ventes' )
-    
     ggplot_Graph <<- df_expose
     ggplot(df_expose, aes(x=reorder(df_expose$Désignation.Famille, df_expose$Montant.Total), fill=df_expose$'Désignation.Famille', y=df_expose$Montant.Total))+geom_histogram(color="#4EDB1B", stat = 'identity')+theme_light() %>%
-      +theme(axis.title = element_blank(), axis.text.x = element_text(color = 'steelblue', size = 8, hjust = 1, face = "italic") ) %>%
-      +theme(axis.line.y = element_line(colour = "#50BFC9", linetype = "dotted", size = 1))+theme(legend.position = 'bottom', legend.title = element_blank()) %>%
+      +theme(axis.title = element_blank(), axis.text.x = element_text(color = 'steelblue', size = 8, hjust = 1, face = "italic") )+theme(axis.line.y = element_line(colour = "#50BFC9", linetype = "dotted", size = 1))+theme(legend.position = 'bottom', legend.title = element_blank()) %>%
       +theme(axis.line.x = element_line(colour = "lightblue", linetype = "dotdash"))+scale_fill_brewer(palette = "Set3")+scale_x_discrete(labels = abbreviate)#+scale_y_continuous(labels = scales::percent)#+scale_y_continuous(limits = c(0,20000))
-    
   },height = 'auto',width = 'auto'
   )
   
@@ -322,8 +330,6 @@ server = function(input, output,session) {
     
     colnames(df_expose)
     colnames(df_expose) = c('Désignation.Famille','Montant soumis' , 'Montant TVA', 'Montant.Total', 'Répartition des ventes' )
-    # formatPercentage(df_expose, 'ColPcent', digits = 2)
-    
     ggplot_Graph2 <<- df_expose
     
     ggplot(df_expose, aes(x=reorder(df_expose$Désignation.Famille, df_expose$'Répartition des ventes'), fill=df_expose$'Désignation.Famille', y=df_expose$'Répartition des ventes')) %>%
@@ -334,7 +340,32 @@ server = function(input, output,session) {
     
   },height = 'auto',width = 'auto'
   )
+  # values = reactiveValues()
+  data = reactive({
+    if (!is.null(input$TabMod2Paiement)) {
+      DF = hot_to_r(input$TabMod2Paiement)
+    } else {
+      if (is.null(values[["DF"]]))
+        DF = DF
+      else
+        DF = values[["DF"]]
+    }
+    
+    values[["DF"]] = DF
+    DF
+  })
   
+  save_var <- renderDataTable({
+    DF = data()
+    if (!is.null(DF)) DF
+    DF
+  })
+  
+  output$TabMod2Paiement <- renderRHandsontable({
+    DF = data()
+    if (!is.null(DF))
+      rhandsontable(DF, stretchH = "all")
+  }) 
   output$TabMod2Paiement <- renderRHandsontable( {
     attach(TabMod2Paiement)
     
@@ -346,15 +377,19 @@ server = function(input, output,session) {
     TabMod2Paiement$Mont.Total <- as.numeric(TabMod2Paiement$Mont.Total)
     TabMod2Paiement$T.Règlement <- as.integer(TabMod2Paiement$T.Règlement)
     rhandsontable(TabMod2Paiement)
+    
   } )
   
   output$tabDataPay <- DT::renderDataTable(filter='none', rownames = F, editable = F, selection = 'none', {
-    #  tabDataPay(list("Type de réglement"=c("Veuillez charger vos données"), "Montant"=c("0")))
-    # View(tabDataPay)
+    Info <- data.frame("Information"=c("Veuillez charger vos données d'encaissement"))
+    # if(is.null) { 
+    #   Info
+    #   }
+    # else{
     tabDataPay <- read_delim(input$dataPay$datapath, delim = ";",
                              escape_double = FALSE, quote = '"',
-                             locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null",
-                             comment = "//", trim_ws = TRUE)
+                             locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null",                              comment = "//", trim_ws = TRUE)
+    # }
   } )
   # =========================================================================== =
   ## Preview ----
@@ -606,9 +641,9 @@ server = function(input, output,session) {
     content = function(file) {
       tempReport <- file.path(tempdir(""), "report.Rmd")
       file.copy("report.Rmd", tempReport, overwrite = TRUE)
-      
-      params <- list(n = input$df_expose_dataFile, o = input$df_expose_SumT, p = input$df_expose_dataBis, q = input$df_expose_dataTVA, s = input$df_expose_NbClients, t = input$df_expose_TabMod2Paiement,
-                     a = input$ggplot_Graph2, b=input$ggplot_Graph,  c=input$ggplot_Graph, b = df_Date)
+      View(data())
+      params <- list(n = input$df_expose_dataFile, o = input$df_expose_SumT, p = input$df_expose_dataBis, q = input$df_expose_dataTVA, s = input$df_expose_NbClients, t = input$data,
+                     a = input$ggplot_Graph2, b=input$ggplot_Graph, b = df_Date,  c=input$ggplot_Graph, d = input$df_expose_TabMod2Paiement)
       
       rmarkdown::render(tempReport, output_file = file,
                         params = params,
