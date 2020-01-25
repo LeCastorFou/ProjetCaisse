@@ -93,7 +93,7 @@ ui <- dashboardPage(
                    fluidRow(
                      column(width = 12, offset = -1,
                             tabsetPanel(
-                              tabPanel("Mode de paiement", rHandsontableOutput("TabMod2Paiement")),
+                              tabPanel("Mode de paiement", rHandsontableOutput("hot")),
                               tabPanel("Table téléchargée", dataTableOutput("tabDataPay"))
                             )
                      )

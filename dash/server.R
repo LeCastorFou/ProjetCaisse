@@ -15,7 +15,7 @@ server = function(input, output,session) {
   TabMod2P <- reactiveValues()
   tabDataPay <- reactiveValues()
   MyDataNbClients <- reactiveValues()
-  values = reactiveValues()
+  hot = reactiveValues()
   
   output$tab_preview <- DT::renderDataTable(filter='none', rownames = F, selection = 'none',
                                             {
@@ -60,17 +60,10 @@ server = function(input, output,session) {
                                                 ) 
                                                 df <- df[,-2:-4]
                                                 df <- select(df, 1, 2 ,6  )
-                                                # colname(df) <- list()
-                                                # boucle for sur la list (reactive value tout les nom de colonnes)
-                                                #if "nom " isin colname(df) :
-                                                # pass
-                                                #else
-                                                #  df[,"nom colonne"] <- NA
-                                                
-                                                #  View(df)
+                                                df=df
+                                                # boucle for sur la list (reactive value tout les nom de colonnes) - #if "nom " isin colname(df) : -  # pass - #else - #  df[,"nom colonne"] <- NA -   # View(df)
                                               }
                                             },  options = list(pageLength = 6)
-                                            
   )
   
   output$dataFile <- DT::renderDataTable(class = "hover cell-border compact flotter", selection = "none", ## caption = "Rapport des ventes",
@@ -340,45 +333,18 @@ server = function(input, output,session) {
     
   },height = 'auto',width = 'auto'
   )
-  # values = reactiveValues()
-  data = reactive({
-    if (!is.null(input$TabMod2Paiement)) {
-      DF = hot_to_r(input$TabMod2Paiement)
-    } else {
-      if (is.null(values[["DF"]]))
-        DF = DF
-      else
-        DF = values[["DF"]]
-    }
-    
-    values[["DF"]] = DF
-    DF
-  })
   
-  save_var <- renderDataTable({
-    DF = data()
-    if (!is.null(DF)) DF
-    DF
+  output$hot <- renderRHandsontable({
+    if(is.null(input$hot)) {
+      df <- readRDS("Rapports_Mode_de_paiement.rds")  
+      df$Mont.Total <- as.numeric(df$Mont.Total)
+      df_expose_TabMod2Paiement <<- df
+    } else df <- hot_to_r(input$hot)
+    df_expose_TabMod2Paiement <<- df 
+    rhandsontable(df)
   })
-  
-  output$TabMod2Paiement <- renderRHandsontable({
-    DF = data()
-    if (!is.null(DF))
-      rhandsontable(DF, stretchH = "all")
-  }) 
-  output$TabMod2Paiement <- renderRHandsontable( {
-    attach(TabMod2Paiement)
-    
-    TabMod2Paiement <- read_delim("Rapports_Mode_de_paiement.RData", delim = ";",
-                                  escape_double = FALSE, quote = '"',
-                                  locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", 
-                                  comment = "//", trim_ws = TRUE) 
-    df_expose_TabMod2Paiement <<- TabMod2Paiement    
-    TabMod2Paiement$Mont.Total <- as.numeric(TabMod2Paiement$Mont.Total)
-    TabMod2Paiement$T.Règlement <- as.integer(TabMod2Paiement$T.Règlement)
-    rhandsontable(TabMod2Paiement)
-    
-  } )
+  output$table <- renderTable(hot_to_r(req(input$hot)))
+  output$table <- renderTable(if(is.null(input$hot)) return(df0) else return(hot_to_r((input$hot)))) 
   
   output$tabDataPay <- DT::renderDataTable(filter='none', rownames = F, editable = F, selection = 'none', {
     Info <- data.frame("Information"=c("Veuillez charger vos données d'encaissement"))
@@ -388,17 +354,13 @@ server = function(input, output,session) {
     # else{
     tabDataPay <- read_delim(input$dataPay$datapath, delim = ";",
                              escape_double = FALSE, quote = '"',
-                             locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null",                              comment = "//", trim_ws = TRUE)
+                             locale = locale(decimal_mark = ",",  encoding = "ISO-8859-1"), na = "null", comment = "//", trim_ws = TRUE)
     # }
   } )
   # =========================================================================== =
   ## Preview ----
   # =========================================================================== =
   
-  observeEvent(input$TabMod2Paiement, {
-    
-    saveRDS(hot_to_r(input$TabMod2Paiement), file = "Rapports_Mode_de_paiement.rds")
-  } )
   observeEvent(input$UploadFile, {
     updateTabItems(session,"tabs",selected= "tab_readData")
   } )
@@ -641,8 +603,7 @@ server = function(input, output,session) {
     content = function(file) {
       tempReport <- file.path(tempdir(""), "report.Rmd")
       file.copy("report.Rmd", tempReport, overwrite = TRUE)
-      View(data())
-      params <- list(n = input$df_expose_dataFile, o = input$df_expose_SumT, p = input$df_expose_dataBis, q = input$df_expose_dataTVA, s = input$df_expose_NbClients, t = input$data,
+      params <- list(n = input$df_expose_dataFile, o = input$df_expose_SumT, p = input$df_expose_dataBis, q = input$df_expose_dataTVA, s = input$df_expose_NbClients, t = input$hot,
                      a = input$ggplot_Graph2, b=input$ggplot_Graph, b = df_Date,  c=input$ggplot_Graph, d = input$df_expose_TabMod2Paiement)
       
       rmarkdown::render(tempReport, output_file = file,
