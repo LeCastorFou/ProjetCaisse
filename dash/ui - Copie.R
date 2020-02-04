@@ -21,15 +21,13 @@ library(tinytex)
 library(kableExtra)
 library(RColorBrewer)
 library(rhandsontable)
-library(tidyr)
-
 # ####################### #
 ## UI ----
 # ####################### # 
 rm(list = ls())
 
 ui <- dashboardPage(
-  dashboardHeader(title = "Journal de synthèse", titleWidth = 300),
+  dashboardHeader(title = "ELAN INFO", titleWidth = 300),
   dashboardSidebar(collapsed = TRUE,
                    sidebarMenu(id = "tabs",
                                menuItem("Lecture des informations ", tabName = "tab_readData", icon = icon("bar-chart-o")),
@@ -90,16 +88,15 @@ ui <- dashboardPage(
                               plotOutput("MyDataGraph2"))
                      ))),
                  box(
-                   fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Veuillez charger vos données d'encaissement"
+                   fileInput("dataPay",label = NULL,buttonLabel = "Navigateur...", placeholder = "Charger le rapport des modes de paiement "
                    ),
                    fluidRow(
                      column(width = 12, offset = -1,
-                            tabsetPanel(id='tabspan',
-                                        tabPanel("Mode de paiement", rHandsontableOutput("hot")),
-                                        tabPanel("Table téléchargée", DTOutput("tabDataPay"))
+                            tabsetPanel(
+                              tabPanel("Mode de paiement", rHandsontableOutput("hot")),
+                              tabPanel("Table téléchargée", dataTableOutput("tabDataPay"))
                             )
-                     ),
-                     textOutput("text")
+                     )
                    ),
                    fluidRow(
                      tags$br(),
@@ -145,18 +142,18 @@ ui <- dashboardPage(
               )
             )
         ),
-        box(title = "Informations sur la marque du matériel",
+        box(title = "Informations sur la marque du TPV",
             shinythemes::themeSelector(),
             status = "warning",
             fluidRow(
               column(width = 5, offset = 1),
               column(
                 width = 9,
-                offset = 1,
+                offset = -1,
                 radioButtons(
                   inputId = "marque",
                   label = NULL,
-                  choices = c(Aucun = '0',"Marques" = '1',"EXA" = '2', "TouchScale" = '3'),
+                  choices = c(Aucun = '0',"Marques" = '1',"EXA" = '2'),
                   selected = '1', inline=T
                 )))),
         box(
@@ -168,7 +165,7 @@ ui <- dashboardPage(
                 label = 'Format des dates',
                 choices = c('Format date US' = '0', 'Format date UE' = '1'),
                 selected = '0'))
-          ),
+                    ),
           fluidRow(
             column(
               width = 7, offset = 1,
@@ -176,9 +173,9 @@ ui <- dashboardPage(
             column( 
               width = 1, offset = 1,
               (actionButton(inputId = "visualisation", label = "visualiser", icon = icon("play"))))
-            # tags$br(),
-            # h3("")
-          )),
+           # tags$br(),
+           # h3("")
+           )),
         fluidRow(
           column(
             width = 12, offset = -1,

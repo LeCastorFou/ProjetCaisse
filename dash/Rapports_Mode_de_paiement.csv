@@ -1,8 +1,8 @@
-"T.Règlement";"Désignation";"Mont.Total"
-1;"En espèce";NA
-2;"Carte bancaire";NA
-4;"Chèque";NA
-5;"CARTE BLEU MOBILE";NA
-9;"HABITUES VENTE";NA
-10;"TICKET RESTO";NA
-13;"Ticket Restaurant Électronique";NA
+T.Règlement;Désignation;Mont.Total
+1;En espèce;
+2;Carte bancaire;
+4;Chèque;
+5;CARTE BLEU MOBILE;
+9;HABITUES VENTE;
+10;TICKET RESTO;
+13;Ticket Restaurant Électronique;
