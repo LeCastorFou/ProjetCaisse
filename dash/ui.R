@@ -22,7 +22,7 @@ library(kableExtra)
 library(RColorBrewer)
 library(rhandsontable)
 library(tidyr)
-
+library(writexl)
 # ####################### #
 ## UI ----
 # ####################### # 
