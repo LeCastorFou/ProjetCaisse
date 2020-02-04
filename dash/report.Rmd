@@ -9,7 +9,6 @@ params:
   q: NA
   s: NA
   t: NA
-  
   a: NA
   b: NA
   c: NA
@@ -20,21 +19,26 @@ params:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
 
+## {.tabset .tabset-fade .tabset-pills}
+
+### Synthèse
+
+
+```{r} 
+kable(df_expose_TabMod2Paiement) %>% 
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 14, position = "float_right")
+```
+
 ```{r}
 colnames(df_Date)=c('- Début de période', '-   Fin de période')
 kable(df_Date) %>%
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 15) 
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 12) 
 ```
 
 ```{r}
-kable(df_expose_TabMod2Paiement) %>%
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 15, position = "float_right")
-```
-
-```{r}
-rownames(df_expose_NbClients)=c("Nombre de tickets")
+rownames(df_expose_NbClients)=c("Nombre de tickets de caisse :")
 kable(df_expose_NbClients) %>% 
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 20)
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "float_left", font_size = 17)
 ```
 ```{r}
 rownames(df_expose_NbClients)=c("")
@@ -56,28 +60,35 @@ rownames(df_expose_NbClients)=c("")
 kable(df_expose_NbClients) %>% 
 kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = T, font_size = 0.5)
 ```
-```{r}
- colnames(df_expose_dataFile)=c('Date', 'Heure', 'Réf.Doc', 'Famille', 'Code article','Désignation ', 'Qté', 'Taux de TVA','Prix', 'Montant soumis', 'TVA collectée', 'Montant Total')
-paged_table(df_expose_dataFile)
-```
 
 ```{r}
-kable(ggplot_Graph) %>% 
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"), font_size = 15)
-# formatPercentage(ggplot_Graph,'Répartition des ventes', digits = "3")
-format('Répartition des ventes', digits = "2")
-   ggplot(ggplot_Graph, aes(x=reorder(ggplot_Graph$'Désignation.Famille', ggplot_Graph$Montant.Total), fill=ggplot_Graph$'Désignation.Famille', y=ggplot_Graph$Montant.Total))+geom_histogram(color="#4EDB1B", stat = 'identity')+theme_light() %>%
+kable(ggplot_Graph, digits = 2) %>%
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"), font_size = 15, position = "left", full_width = T)
+```
+
+```{r rows.print=10}
+ # rownames(df_expose_dataFile, do.NULL = FALSE)
+ colnames(df_expose_dataFile)=c('Date', 'Heure', 'Réf.Doc', 'Famille', 'Code article','Désignation ', 'Qté', 'Taux de TVA','Prix', 'Montant soumis', 'TVA collectée', 'Montant Total')
+paged_table(df_expose_dataFile) #, rows.names=FALSE
+```
+
+### Graphiques
+
+```{r fig.height= 5.5, out.width= "50%"}
+  ggplot(ggplot_Graph, aes(x=reorder(ggplot_Graph$'Désignation.Famille', ggplot_Graph$Montant.Total), fill=ggplot_Graph$'Désignation.Famille', y=ggplot_Graph$Montant.Total))+geom_histogram(color="#4EDB1B", stat = 'identity')+theme_light() %>%
      +theme(axis.title = element_blank(), axis.text.x = element_text(color = 'steelblue', size = 8, hjust = 1, face = "italic") ) %>%
      +theme(axis.line.y = element_line(colour = "#50BFC9", linetype = "dotted", size = 1))+theme(legend.position = 'bottom', legend.title = element_blank()) %>%
      +theme(axis.line.x = element_line(colour = "lightblue", linetype = "dotdash"))+scale_fill_brewer(palette = "Set3")+scale_x_discrete(labels = abbreviate)
-```
-
-```{r}
-   ggplot(ggplot_Graph2, aes(x=reorder(ggplot_Graph2$'Désignation.Famille', ggplot_Graph2$'Répartition des ventes'), fill=ggplot_Graph2$'Désignation.Famille', y=ggplot_Graph2$'Répartition des ventes')) %>%
+   
+      ggplot(ggplot_Graph2, aes(x=reorder(ggplot_Graph2$'Désignation.Famille', ggplot_Graph2$'Répartition des ventes'), fill=ggplot_Graph2$'Désignation.Famille', y=ggplot_Graph2$'Répartition des ventes')) %>%
     +geom_bar( color="#9BCD9B", stat="identity")+theme_light() %>% #+geom_text(aes(label = ggplot_Graph2$'Répartition des ventes', ggplot_Graph2$Désignation.Famille, ggplot_Graph2$'Répartition des ventes'), vjust=1.6, color='white', size = 0.5) %>%
     +theme(axis.title = element_blank(), axis.text.x = element_text(color = 'steelblue', size = 8, hjust = 1, face = "italic") ) %>%
     +theme(axis.line.y = element_line(colour = "#50BFC9", linetype = "dotted", size = 1))+theme(legend.position = 'bottom', legend.title = element_blank() ) %>%
     +theme(axis.line.x = element_line(colour = "lightblue", linetype = "dotdash"))+scale_fill_brewer(palette = 'Set3')+scale_y_continuous(labels = scales::percent)+scale_x_discrete(labels = abbreviate)
 ```
+
+
+
+
 
 
